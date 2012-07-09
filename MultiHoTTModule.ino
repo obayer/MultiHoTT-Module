@@ -8,6 +8,7 @@
  */
 
 #define DEBUG
+#define HOTTV4_RXTX 9
 
 void setup() {
   Serial.begin(115200);
@@ -16,6 +17,9 @@ void setup() {
 }
 
 void loop() {
+  /** Read VBAT for each cell, normally via connector */
+  sensorsReadVBAT();
+  
   /** Request new data from MultiWii */
   multiWiiRequestData();
 

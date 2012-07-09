@@ -10,6 +10,50 @@
 
 const uint8_t kHoTTv4BinaryPacketSize = 45; 
 
+typedef enum {
+  HoTTv4NotificationErrorCalibration     = 0x01,
+  HoTTv4NotificationErrorReceiver        = 0x02,
+  HoTTv4NotificationErrorDataBus         = 0x03,
+  HoTTv4NotificationErrorNavigation      = 0x04,
+  HoTTv4NotificationErrorError           = 0x05,
+  HoTTv4NotificationErrorCompass         = 0x06,
+  HoTTv4NotificationErrorSensor          = 0x07,
+  HoTTv4NotificationErrorGPS             = 0x08,
+  HoTTv4NotificationErrorMotor           = 0x09,
+  
+  HoTTv4NotificationMaxTemperature       = 0x0A,
+  HoTTv4NotificationAltitudeReached      = 0x0B,
+  HoTTv4NotificationWaypointReached      = 0x0C,
+  HoTTv4NotificationNextWaypoint         = 0x0D,
+  HoTTv4NotificationLanding              = 0x0E,
+  HoTTv4NotificationGPSFix               = 0x0F,
+  HoTTv4NotificationUndervoltage         = 0x10,
+  HoTTv4NotificationGPSHold              = 0x11,
+  HoTTv4NotificationGPSHome              = 0x12,
+  HoTTv4NotificationGPSOff               = 0x13,
+  HoTTv4NotificationBeep                 = 0x14,
+  HoTTv4NotificationMicrocopter          = 0x15,
+  HoTTv4NotificationCapacity             = 0x16,
+  HoTTv4NotificationCareFreeOff          = 0x17,
+  HoTTv4NotificationCalibrating          = 0x18,
+  HoTTv4NotificationMaxRange             = 0x19,
+  HoTTv4NotificationMaxAltitude          = 0x1A,
+  
+  HoTTv4Notification20Meter              = 0x25,
+  HoTTv4NotificationMicrocopterOff       = 0x26,
+  HoTTv4NotificationAltitudeOn           = 0x27,
+  HoTTv4NotificationAltitudeOff          = 0x28,
+  HoTTv4Notification100Meter             = 0x29,
+  HoTTv4NotificationCareFreeOn           = 0x2E,
+  HoTTv4NotificationDown                 = 0x2F,
+  HoTTv4NotificationUp                   = 0x30,
+  HoTTv4NotificationHold                 = 0x31,
+  HoTTv4NotificationGPSOn                = 0x32,
+  HoTTv4NotificationFollowing            = 0x33,
+  HoTTv4NotificationStarting             = 0x34,
+  HoTTv4NotificationReceiver             = 0x35,
+} HoTTv4Notification;
+
 struct {
   uint8_t startByte;
   uint8_t sensorID;
@@ -53,6 +97,6 @@ struct {
   uint8_t version;
   uint8_t endByte;
   uint8_t chksum;
-} HottV4ElectricAirModule;
+} HoTTV4ElectricAirModule;
 
 #endif

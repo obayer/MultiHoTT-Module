@@ -1,7 +1,6 @@
 #include "HoTTv4.h"
 #include "MultiHoTTModule.h"
 
-#define HOTTV4_RXTX 9
 #define HOTTV4_TX_DELAY 1000
 
 static uint8_t outBuffer[173];
@@ -44,24 +43,55 @@ static void hottV4SerialWrite(uint8_t c) {
   hottV4Serial.write(c);
 }
 
+/**
+ * Writes cell 1-3 high, low values and if not available 
+ * calculates vbat.
+ */
+static void hottV4EAMUpdateBattery() {
+  HoTTV4ElectricAirModule.cell1L = MultiHoTTModule.cell1;
+  HoTTV4ElectricAirModule.cell1H = MultiHoTTModule.cell1;
+  HoTTV4ElectricAirModule.cell2L = MultiHoTTModule.cell2;
+  HoTTV4ElectricAirModule.cell2H = MultiHoTTModule.cell2;
+  HoTTV4ElectricAirModule.cell3L = MultiHoTTModule.cell3;
+  HoTTV4ElectricAirModule.cell3H = MultiHoTTModule.cell3;
+  
+  if (MultiHoTTModule.vbat > 0) {
+    HoTTV4ElectricAirModule.driveVoltage = MultiHoTTModule.vbat;
+  } else {
+    uint16_t vbat = (MultiHoTTModule.cell1 + MultiHoTTModule.cell2 + MultiHoTTModule.cell3) / 5;
+    HoTTV4ElectricAirModule.driveVoltage = vbat; 
+  }
+
+  if (HoTTV4ElectricAirModule.driveVoltage < 102) {
+    HoTTV4ElectricAirModule.alarmTone = HoTTv4NotificationUndervoltage;  
+    HoTTV4ElectricAirModule.alarmInverse = 0x80;
+  } else {
+    HoTTV4ElectricAirModule.alarmInverse = 0x0;
+    HoTTV4ElectricAirModule.alarmTone = 0x0; 
+  }
+}
+
+/**
+ * Sends HoTTv4 capable EAM telemetry frame.
+ */
 static void hottV4SendEAM() {
   /** Minimum data set for EAM */
-  HottV4ElectricAirModule.startByte = 0x7C;
-  HottV4ElectricAirModule.sensorID = HOTTV4_ELECTRICAL_AIR_SENSOR_ID;
-  HottV4ElectricAirModule.sensorTextID = HOTTV4_ELECTRICAL_AIR_SENSOR_TEXT_ID;
-  HottV4ElectricAirModule.endByte = 0x7D;
+  HoTTV4ElectricAirModule.startByte = 0x7C;
+  HoTTV4ElectricAirModule.sensorID = HOTTV4_ELECTRICAL_AIR_SENSOR_ID;
+  HoTTV4ElectricAirModule.sensorTextID = HOTTV4_ELECTRICAL_AIR_SENSOR_TEXT_ID;
+  HoTTV4ElectricAirModule.endByte = 0x7D;
   /** ### */
 
-  HottV4ElectricAirModule.driveVoltage = MultiHoTTModule.vbat;
-  
-  HottV4ElectricAirModule.height = 500 + MultiHoTTModule.height;
-  HottV4ElectricAirModule.temp1 = 20;
-  HottV4ElectricAirModule.temp2 = 20;
-  HottV4ElectricAirModule.m2s = 72;
-  HottV4ElectricAirModule.m3s = 120;
+  hottV4EAMUpdateBattery();
+
+  HoTTV4ElectricAirModule.height = 500 + MultiHoTTModule.height;
+  HoTTV4ElectricAirModule.temp1 = 20;
+  HoTTV4ElectricAirModule.temp2 = 20;
+  HoTTV4ElectricAirModule.m2s = 72;
+  HoTTV4ElectricAirModule.m3s = 120;
 
   // Copy EAM data to output buffer
-  memcpy(&outBuffer, &HottV4ElectricAirModule, kHoTTv4BinaryPacketSize);
+  memcpy(&outBuffer, &HoTTV4ElectricAirModule, kHoTTv4BinaryPacketSize);
   
   // Send data from output buffer
   hottV4SendData(outBuffer, kHoTTv4BinaryPacketSize);
