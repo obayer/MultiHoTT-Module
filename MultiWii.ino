@@ -97,7 +97,7 @@ void mwEvaluateResponse() {
       inBuffer[offset++] = c; 
     } else if (HEADER_CMD == c_state && offset >= payloadSize) { 
       if (checksum == c) {
-        evaluateMSPResponse(cmd, inBuffer);
+        mwEvaluateMSPResponse(cmd, inBuffer);
       }
 
       c_state = IDLE;
@@ -109,13 +109,13 @@ void mwEvaluateResponse() {
  * Evaluates valid MultiWii Serial Protocol message and 
  * stores needed data for later transmission via HoTT. 
  */
-static void evaluateMSPResponse(uint8_t cmd, uint8_t *data) {
+static void mwEvaluateMSPResponse(uint8_t cmd, uint8_t *data) {
   switch(cmd) {
     case MSP_BAT:
-      evaluateMSP_BAT(data);
+      mwEvaluateMSP_BAT(data);
       break;
     case MSP_ALTITUDE:
-      evaluateMSP_ALTITUDE(data);
+      mwEvaluateMSP_ALTITUDE(data);
       break;
   }
 }
@@ -123,12 +123,12 @@ static void evaluateMSPResponse(uint8_t cmd, uint8_t *data) {
 /**
  * Reads VBAT from given MSP data frame and stores it for later usage.
  */
-static void evaluateMSP_BAT(uint8_t *data) {
+static void mwEvaluateMSP_BAT(uint8_t *data) {
   MultiHoTTModule.vbat = data[0];
 }
 
 /**
  * Reads altitude from MSP data frame and stores it for later usage.
  */
-static void evaluateMSP_ALTITUDE(uint8_t *data) {
+static void mwEvaluateMSP_ALTITUDE(uint8_t *data) {
 }
