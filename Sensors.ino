@@ -1,20 +1,32 @@
 #include "MultiHoTTModule.h"
 
-#define VBAT_S1 A0
-#define VBAT_S2 A1
-#define VBAT_S3 A2
+#define VBAT A0
+#define TEMP1 A4
 
-#define VBAT_UPDATE_INTERVAL 1000
-
+/**
+ * Reads VBAT value on anlog input VBAT.
+ */
 void sensorsReadVBAT() {
-  static uint32_t lastUpdate = 0;
-  
-  if ((millis() - lastUpdate) > VBAT_UPDATE_INTERVAL) {
-    lastUpdate = millis();
+  analogRead(TEMP1);
+  delay(25);
 
-    // Convert from [0;1024] to [0;256] interval
-    MultiHoTTModule.cell1 = analogRead(VBAT_S1) >> 2;
-    MultiHoTTModule.cell2 = analogRead(VBAT_S2) >> 2;
-    MultiHoTTModule.cell3 = analogRead(VBAT_S3) >> 2;
-  }
+  // Convert from [0;1024] to [0;256] interval
+  MultiHoTTModule.vbat = analogRead(VBAT) >> 2;
+}
+
+/**
+ * Reads temperature value(s) on analog input TEMP1 
+ */
+void sensorsReadTemperatures() {
+  #ifdef TEMP1
+    // To avoid sensor jitter as found in http://forums.adafruit.com/viewtopic.php?f=25&t=11597
+    analogRead(TEMP1);
+    delay(25);
+    
+    // Usage of temperature sensor LM35
+    // 5000mv / 1024steps = 4,88mv/step --> 0,488C/step
+    // Actually the correct conversation rate would be 0,488 but 0,5 is close enough
+    MultiHoTTModule.temp = ((analogRead(TEMP1) * 488) / 1000) + 0.5;
+    Serial.println(MultiHoTTModule.temp, DEC);
+  #endif
 }

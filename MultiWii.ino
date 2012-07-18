@@ -54,11 +54,11 @@ static void mwRequestData(uint8_t cmd) {
  * inBuffer.
  */
 void mwEvaluateResponse() {
-  uint8_t c;
-  uint8_t cmd;
-  uint8_t checksum;
-  uint8_t payloadSize;
-  uint8_t offset;
+  uint8_t c = 0;
+  uint8_t cmd = 0;
+  uint8_t checksum = 0;
+  uint8_t payloadSize = 0;
+  uint8_t offset = 0;
   
   static enum _serial_state {
     IDLE,

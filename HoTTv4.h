@@ -9,6 +9,7 @@
 #define HOTTV4_ELECTRICAL_AIR_SENSOR_TEXT_ID 0xE0 // Electric Air Module ID
 
 const uint8_t kHoTTv4BinaryPacketSize = 45; 
+const uint8_t kHoTTv4TextPacketSize = 173;
 
 typedef enum {
   HoTTv4NotificationErrorCalibration     = 0x01,
@@ -98,5 +99,14 @@ struct {
   uint8_t endByte;
   uint8_t chksum;
 } HoTTV4ElectricAirModule;
+
+struct {
+  uint8_t startByte;
+  uint8_t sensorTextID;
+  uint8_t alarm;
+  uint8_t text[8*21];
+  uint8_t endByte;
+  uint8_t chksum;
+} HoTTv4ElectricalAirTextModule;
 
 #endif

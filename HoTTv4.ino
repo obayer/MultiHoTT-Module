@@ -1,9 +1,22 @@
 #include "HoTTv4.h"
 #include "MultiHoTTModule.h"
 
+#define HOTTV4_RXTX 3 
 #define HOTTV4_TX_DELAY 1000
 
+#define HOTTV4_BUTTON_DEC 0xEB
+#define HOTTV4_BUTTON_INC 0xED
+#define HOTTV4_BUTTON_SET 0xE9
+#define HOTTV4_BUTTON_NIL 0x0F
+#define HOTTV4_BUTTON_NEXT 0xEE
+#define HOTTV4_BUTTON_PREV 0xE7
+
 static uint8_t outBuffer[173];
+
+static uint8_t row = 2;
+static uint8_t col = 0;
+
+static uint8_t vbat = 100;
 
 SoftwareSerial hottV4Serial(HOTTV4_RXTX , HOTTV4_RXTX);
 
@@ -20,15 +33,15 @@ void hottV4Setup() {
  * Enables RX and disables TX
  */
 static inline void hottV4EnableReceiverMode() {
-  DDRB &= ~(1 << 1);
-  PORTB |= (1 << 1);
+  DDRD &= ~(1 << 3);
+  PORTD |= (1 << 3);
 }
 
 /**
  * Enabels TX and disables RX
  */
 static inline void hottV4EnableTransmitterMode() {
-  DDRB |= (1 << 1);
+  DDRD |= (1 << 3);
 }
 
 /**
@@ -37,7 +50,7 @@ static inline void hottV4EnableTransmitterMode() {
  */
 static void hottV4SerialWrite(uint8_t c) {
   #ifdef DEBUG
-    Serial.print(c, HEX);
+  //  Serial.print(c, HEX);
   #endif
 
   hottV4Serial.write(c);
@@ -58,16 +71,24 @@ static void hottV4EAMUpdateBattery() {
   if (MultiHoTTModule.vbat > 0) {
     HoTTV4ElectricAirModule.driveVoltage = MultiHoTTModule.vbat;
   } else {
+    // Divide by 5 to convert to HoTT interval
     uint16_t vbat = (MultiHoTTModule.cell1 + MultiHoTTModule.cell2 + MultiHoTTModule.cell3) / 5;
     HoTTV4ElectricAirModule.driveVoltage = vbat; 
   }
 
-  if (HoTTV4ElectricAirModule.driveVoltage < 102) {
+  if (HoTTV4ElectricAirModule.driveVoltage <= MultiHoTTModuleSettings.alarmVBat) {
     HoTTV4ElectricAirModule.alarmTone = HoTTv4NotificationUndervoltage;  
-    HoTTV4ElectricAirModule.alarmInverse = 0x80;
-  } else {
-    HoTTV4ElectricAirModule.alarmInverse = 0x0;
-    HoTTV4ElectricAirModule.alarmTone = 0x0; 
+    HoTTV4ElectricAirModule.alarmInverse |= 0x80; // Invert Voltage display
+  } 
+}
+
+static void hottV4EAMUpdateTemperatures() {
+  HoTTV4ElectricAirModule.temp1 = 20 + MultiHoTTModule.temp;
+  HoTTV4ElectricAirModule.temp2 = 20;
+
+  if (HoTTV4ElectricAirModule.temp1 >= (20 + MultiHoTTModuleSettings.alarmTemp1)) {
+    HoTTV4ElectricAirModule.alarmTone = HoTTv4NotificationMaxTemperature;  
+    HoTTV4ElectricAirModule.alarmInverse |= 0x8; // Invert Temp1 display
   }
 }
 
@@ -81,20 +102,132 @@ static void hottV4SendEAM() {
   HoTTV4ElectricAirModule.sensorTextID = HOTTV4_ELECTRICAL_AIR_SENSOR_TEXT_ID;
   HoTTV4ElectricAirModule.endByte = 0x7D;
   /** ### */
-
+ 
+  /** Reset alarms */
+  HoTTV4ElectricAirModule.alarmTone = 0x0;
+  HoTTV4ElectricAirModule.alarmInverse = 0x0;
+  
   hottV4EAMUpdateBattery();
+  hottV4EAMUpdateTemperatures();
 
   HoTTV4ElectricAirModule.height = 500 + MultiHoTTModule.height;
-  HoTTV4ElectricAirModule.temp1 = 20;
-  HoTTV4ElectricAirModule.temp2 = 20;
   HoTTV4ElectricAirModule.m2s = 72;
   HoTTV4ElectricAirModule.m3s = 120;
 
+  // Clear output buffer
+  memset(&outBuffer, 0, sizeof(outBuffer));
+  
   // Copy EAM data to output buffer
   memcpy(&outBuffer, &HoTTV4ElectricAirModule, kHoTTv4BinaryPacketSize);
   
   // Send data from output buffer
   hottV4SendData(outBuffer, kHoTTv4BinaryPacketSize);
+}
+
+/* ##################################################################### *
+ *                HoTTv4 Text Mode                                       *
+ * ##################################################################### */
+
+static void hottV4ClearAllTextLines() {
+  memset(&HoTTv4ElectricalAirTextModule.text[0], ' ', 8*21);
+}
+
+/**
+ * Writes out a single text line of max. 21 chars into HoTTv4ElectricalAirTextModule
+ */
+static void hottV4WriteLine(uint8_t line, const char *text) {
+  uint8_t writeText = 1;
+
+  for (uint8_t index = 0; index < 21; index++) {
+    if (0x0 != text[index] && writeText) {
+       HoTTv4ElectricalAirTextModule.text[(line * 21) + index] = text[index];
+    } else {
+      writeText = 0;
+      HoTTv4ElectricalAirTextModule.text[(line * 21) + index] = ' ';
+    }
+  }
+}
+
+/**
+ * Writes out a single text line of max. 21 chars into HoTTv4ElectricalAirTextModule.
+ * If row == line it gets a selection indicator and given row is also highlighted.
+ */
+static void hottV4WriteLine(uint8_t line, const char *text, uint8_t row, uint8_t col) {
+  char lineText[21];
+  uint8_t inCol = 0;
+
+  enum {
+    IDLE,
+    COLON,
+    SPACE,
+    COL,
+    DONE,
+  } state = IDLE;
+
+  const char selectionIndicator = (line == row) ? '>' : ' ';  
+  snprintf(lineText, 21, "%c%s", selectionIndicator, text);  
+  
+  for (uint8_t index = 0 ; index < 21 ; index++) {
+    uint8_t c = lineText[index];
+    
+    if (IDLE == state) {
+      state = (':' == c) ? COLON : IDLE;
+    } else if (COLON == state) {
+      state = (' ' == c) ? SPACE : COLON; 
+    } else if (SPACE == state) {
+      if ('.' <= c) {
+        inCol++;
+        state = COL;
+      } else {
+        state = SPACE;
+      }
+    } else if (COL == state) {
+      if (' ' == c) {
+        state = SPACE;
+      } else if (0x0 == c) {
+        state = DONE;
+      } else {
+        state = COL;
+      }
+    } else if (DONE == c) {
+      break;
+    }
+    
+    if ((COL == state) && (inCol == col) && (line == row)) {
+      lineText[index] += 128;
+    } 
+  }
+
+  hottV4WriteLine(line, lineText);
+}
+
+/**
+ * Sends HoTTv4 capable EAM text frame.
+ */
+static void hottV4SendEAMText(uint8_t row, uint8_t col) {
+  /** Minimum data set for EAM Text mode */
+  HoTTv4ElectricalAirTextModule.startByte = 0x7B;
+  HoTTv4ElectricalAirTextModule.sensorTextID = HOTTV4_ELECTRICAL_AIR_SENSOR_TEXT_ID;
+  HoTTv4ElectricalAirTextModule.endByte = 0x7D;
+
+  // Clear output buffer
+  memset(&outBuffer, 0x0, sizeof(outBuffer));
+  
+  hottV4ClearAllTextLines();
+  hottV4WriteLine(0, " MultiHoTT Settings");
+
+  char text[21];
+  snprintf(text, 21, "ALARM VOLT : %2i.%1iV", MultiHoTTModuleSettings.alarmVBat / 10, MultiHoTTModuleSettings.alarmVBat % 10);
+  hottV4WriteLine(2, text, row, col);
+  
+  snprintf(text, 21, "ALARM TEMP1:  %3iC", MultiHoTTModuleSettings.alarmTemp1);
+  hottV4WriteLine(3, text, row, col);
+ 
+  // Copy EAM data to output buffer
+  memcpy(&outBuffer, &HoTTv4ElectricalAirTextModule, kHoTTv4TextPacketSize);
+  
+  // Send data from output buffer
+  hottV4SendData(outBuffer, kHoTTv4TextPacketSize);
 }
 
 /**
@@ -137,15 +270,24 @@ void hottV4SendTelemetry() {
   static enum _hottV4_state {
     IDLE,
     BINARY,
-    TEXTMODE,
+    TEXT,
   } hottV4_state = IDLE;
-
-  if (hottV4Serial.available() > 1) { 
+  
+  if (hottV4Serial.available() > 1) {
     for (uint8_t i = 0; i < 2; i++) {
       uint8_t c = hottV4Serial.read();
-      
+
       if (IDLE == hottV4_state) {
-       hottV4_state = (0x80 == c) ? BINARY : IDLE; 
+        switch (c) {
+          case 0x80:
+            hottV4_state = BINARY;
+            break;
+          case 0x7F:
+            hottV4_state = TEXT;
+            break;
+          default:
+            hottV4_state = IDLE;
+        }
       } else if (BINARY == hottV4_state) {
         switch (c) {
           case HOTTV4_ELECTRICAL_AIR_SENSOR_ID:
@@ -156,6 +298,41 @@ void hottV4SendTelemetry() {
           default:
             hottV4_state = IDLE;
         }
+      } else if (TEXT == hottV4_state) {
+        switch (c) {
+          case HOTTV4_BUTTON_NEXT:
+            break;
+          case HOTTV4_BUTTON_PREV:
+            break;
+          case HOTTV4_BUTTON_DEC:
+            if (col) {
+              if (row == 2) {
+                MultiHoTTModuleSettings.alarmVBat -= 1;
+              } else if (row == 3) {
+                MultiHoTTModuleSettings.alarmTemp1 -= 1;
+              }
+            } else {
+              row = row > 2 ? row - 1 : row;
+            }
+            break;
+          case HOTTV4_BUTTON_INC:
+            if (col) {
+              if (row == 2) {
+                MultiHoTTModuleSettings.alarmVBat += 1;
+              } else if (row == 3) {
+                MultiHoTTModuleSettings.alarmTemp1 += 1;
+              }
+            } else {
+              row = row < 3 ? row + 1 : row;
+            }
+            break;
+          case HOTTV4_BUTTON_SET:
+            col = col == 1 ? 0 : 1;
+            break;
+        }
+        
+        hottV4SendEAMText(row, col);
+        hottV4_state = IDLE;
       }
     }
   }
