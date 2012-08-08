@@ -1,4 +1,5 @@
 #include "SoftwareSerial.h"
+#include "MultiHoTTModule.h"
 
 /**
  * MultiHoTT-Module is a stand alone Arduino based Application that acts as a bridge between
@@ -17,13 +18,21 @@ void setup() {
   Serial.begin(115200);
   
   hottV4Setup();
+
+  MultiHoTTModuleSettings.alarmVBat = 104;
 }
 
 static void blink() {
   static uint8_t blink = LOW;
+  static uint8_t cnt = 0;
 
-  digitalWrite(LED, blink);
-  blink = !blink;
+  if (3 == cnt) {
+    cnt = 0;
+  } else {
+    digitalWrite(LED, blink);
+    blink = !blink;
+    cnt++;
+  }
 }
 
 void loop() {
@@ -32,7 +41,7 @@ void loop() {
 
   uint32_t now = millis();
 
-  if ((now - last) > 250) {
+  if ((now - last) > 200) {
     last = now;
     
     /** Be alive blink */
@@ -48,6 +57,12 @@ void loop() {
       case 1:
         /** Read temperatures */
         sensorsReadTemperatures();
+        state++;
+        break;
+      
+      case 2:
+        /** Read current */
+        sensorsReadCurrent();
         state++;
         break;
 

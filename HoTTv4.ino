@@ -11,6 +11,10 @@
 #define HOTTV4_BUTTON_NEXT 0xEE
 #define HOTTV4_BUTTON_PREV 0xE7
 
+#define OFFSET_HEIGHT 500
+#define OFFSET_M2S 72
+#define OFFSET_M3S 120
+
 static uint8_t outBuffer[173];
 
 static uint8_t row = 2;
@@ -49,10 +53,6 @@ static inline void hottV4EnableTransmitterMode() {
  * If in debug mode, data is also written to UART serial interface. 
  */
 static void hottV4SerialWrite(uint8_t c) {
-  #ifdef DEBUG
-  //  Serial.print(c, HEX);
-  #endif
-
   hottV4Serial.write(c);
 }
 
@@ -76,7 +76,7 @@ static void hottV4EAMUpdateBattery() {
     HoTTV4ElectricAirModule.driveVoltage = vbat; 
   }
 
-  if (HoTTV4ElectricAirModule.driveVoltage <= MultiHoTTModuleSettings.alarmVBat) {
+  if ( MultiHoTTModule.vbat <= MultiHoTTModuleSettings.alarmVBat) {
     HoTTV4ElectricAirModule.alarmTone = HoTTv4NotificationUndervoltage;  
     HoTTV4ElectricAirModule.alarmInverse |= 0x80; // Invert Voltage display
   } 
@@ -86,10 +86,10 @@ static void hottV4EAMUpdateTemperatures() {
   HoTTV4ElectricAirModule.temp1 = 20 + MultiHoTTModule.temp;
   HoTTV4ElectricAirModule.temp2 = 20;
 
-  if (HoTTV4ElectricAirModule.temp1 >= (20 + MultiHoTTModuleSettings.alarmTemp1)) {
-    HoTTV4ElectricAirModule.alarmTone = HoTTv4NotificationMaxTemperature;  
-    HoTTV4ElectricAirModule.alarmInverse |= 0x8; // Invert Temp1 display
-  }
+  //if (HoTTV4ElectricAirModule.temp1 >= (20 + MultiHoTTModuleSettings.alarmTemp1)) {
+  //  HoTTV4ElectricAirModule.alarmTone = HoTTv4NotificationMaxTemperature;  
+  //  HoTTV4ElectricAirModule.alarmInverse |= 0x8; // Invert Temp1 display
+  //}
 }
 
 /**
@@ -110,9 +110,21 @@ static void hottV4SendEAM() {
   hottV4EAMUpdateBattery();
   hottV4EAMUpdateTemperatures();
 
-  HoTTV4ElectricAirModule.height = 500 + MultiHoTTModule.height;
-  HoTTV4ElectricAirModule.m2s = 72;
-  HoTTV4ElectricAirModule.m3s = 120;
+  HoTTV4ElectricAirModule.current = MultiHoTTModule.current / 10; 
+  HoTTV4ElectricAirModule.height = OFFSET_HEIGHT + MultiHoTTModule.height;
+  HoTTV4ElectricAirModule.m2s = OFFSET_M2S; 
+  HoTTV4ElectricAirModule.m3s = OFFSET_M3S;
+  
+  #ifdef DEBUG
+    Serial.println(" --- EAM --- ");
+    
+    Serial.print("   VBat: ");
+    Serial.println(HoTTV4ElectricAirModule.driveVoltage, DEC);
+    
+    Serial.print("Current: ");
+    Serial.println(HoTTV4ElectricAirModule.current, DEC);
+    Serial.println("");
+  #endif
 
   // Clear output buffer
   memset(&outBuffer, 0, sizeof(outBuffer));

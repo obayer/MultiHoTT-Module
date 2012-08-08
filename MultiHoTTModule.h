@@ -11,6 +11,7 @@ struct {
   uint8_t temp;
   
   uint32_t height;
+  uint16_t current;
 } MultiHoTTModule;
 
 struct {
