@@ -5,18 +5,26 @@
  * MultiHoTT-Module is a stand alone Arduino based Application that acts as a bridge between
  * MutliWii FlightController and HoTTv4 capable devices to transmit telemetry information. 
  *
- * by Oliver Bayer, 07/2012
+ * by Oliver Bayer & Carsten Giesen, 07/2012
  */
 
 #define DEBUG
 #define LED 13
+static uint16_t cali_cell1;
+static uint16_t cali_cell2;
+static uint16_t cali_cell3;
+static uint16_t cali_cell4;
 
 void setup() {
   pinMode(LED, OUTPUT);
 
   // Used for debuging and to communicate with MultiWii
   Serial.begin(115200);
-  
+  analogReference(DEFAULT);
+  cali_cell1 = 105;  
+  cali_cell2 = 105;  
+  cali_cell3 = 105;  
+  cali_cell4 = 105;  
   hottV4Setup();
 
   MultiHoTTModuleSettings.alarmVBat = 104;

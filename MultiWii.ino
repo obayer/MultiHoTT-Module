@@ -1,4 +1,5 @@
 #include "MultiHoTTModule.h"
+#include "config.h"
 
 /**
  * Requests via serial interface data from MultWii (>= 2.1) and stores requested
@@ -13,6 +14,8 @@
 #define MSP_STATUS    101
 #define MSP_BAT       110
 #define MSP_ALTITUDE  109
+
+#define DEBUG
 
 static uint8_t inBuffer[INPUT_BUFFER_SIZE];
 

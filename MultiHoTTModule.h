@@ -2,11 +2,13 @@
 #define MultiHoTTModule_h
 
 struct {
-  uint8_t vbat;
+  uint16_t vbat1;  //VBat MultiWiiModule
+  uint16_t vbat2;  //VBat MultiWii FlightControll
 
-  uint8_t cell1;
-  uint8_t cell2;
-  uint8_t cell3;
+  uint16_t cell1;
+  uint16_t cell2;
+  uint16_t cell3;
+  uint16_t cell4;
   
   uint8_t temp;
   

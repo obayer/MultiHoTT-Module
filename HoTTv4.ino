@@ -57,28 +57,38 @@ static void hottV4SerialWrite(uint8_t c) {
 }
 
 /**
- * Writes cell 1-3 high, low values and if not available 
+ * Writes cell 1-4 high, low values and if not available 
  * calculates vbat.
  */
 static void hottV4EAMUpdateBattery() {
-  HoTTV4ElectricAirModule.cell1L = MultiHoTTModule.cell1;
-  HoTTV4ElectricAirModule.cell1H = MultiHoTTModule.cell1;
-  HoTTV4ElectricAirModule.cell2L = MultiHoTTModule.cell2;
-  HoTTV4ElectricAirModule.cell2H = MultiHoTTModule.cell2;
-  HoTTV4ElectricAirModule.cell3L = MultiHoTTModule.cell3;
-  HoTTV4ElectricAirModule.cell3H = MultiHoTTModule.cell3;
-  
-  if (MultiHoTTModule.vbat > 0) {
-    HoTTV4ElectricAirModule.driveVoltage = MultiHoTTModule.vbat;
-  } else {
-    // Divide by 5 to convert to HoTT interval
-    uint16_t vbat = (MultiHoTTModule.cell1 + MultiHoTTModule.cell2 + MultiHoTTModule.cell3) / 5;
-    HoTTV4ElectricAirModule.driveVoltage = vbat; 
+  HoTTV4ElectricAirModule.cell1L = MultiHoTTModule.cell1/2;
+  if (HoTTV4ElectricAirModule.cell1H < MultiHoTTModule.cell1/2) {
+    HoTTV4ElectricAirModule.cell1H = MultiHoTTModule.cell1/2;
   }
+  HoTTV4ElectricAirModule.cell2L = MultiHoTTModule.cell2/2;
+  if (HoTTV4ElectricAirModule.cell2H < MultiHoTTModule.cell2/2) {
+    HoTTV4ElectricAirModule.cell2H = MultiHoTTModule.cell2/2;
+  }
+  HoTTV4ElectricAirModule.cell3L = MultiHoTTModule.cell3/2;
+  if (HoTTV4ElectricAirModule.cell3H < MultiHoTTModule.cell3/2) {
+    HoTTV4ElectricAirModule.cell3H = MultiHoTTModule.cell3/2;
+  }
+  HoTTV4ElectricAirModule.cell4L = MultiHoTTModule.cell4/2;
+  if (HoTTV4ElectricAirModule.cell4H < MultiHoTTModule.cell4/2) {
+    HoTTV4ElectricAirModule.cell4H = MultiHoTTModule.cell4/2;
+  }
+  HoTTV4ElectricAirModule.driveVoltageLow = MultiHoTTModule.vbat1&0x00FF;
+  HoTTV4ElectricAirModule.driveVoltageHigh = MultiHoTTModule.vbat1 >> 8;
+  HoTTV4ElectricAirModule.battery1Low = MultiHoTTModule.vbat1&0x00FF; 
+  HoTTV4ElectricAirModule.battery1High = MultiHoTTModule.vbat1 >> 8; 
+  #ifdef MultiWii_VBat
+  HoTTV4ElectricAirModule.battery2Low = 0; 
+  HoTTV4ElectricAirModule.battery2High = 0; 
+  #endif
 
-  if ( MultiHoTTModule.vbat <= MultiHoTTModuleSettings.alarmVBat) {
+  if ( MultiHoTTModule.vbat1 <= MultiHoTTModuleSettings.alarmVBat) {
     HoTTV4ElectricAirModule.alarmTone = HoTTv4NotificationUndervoltage;  
-    HoTTV4ElectricAirModule.alarmInverse |= 0x80; // Invert Voltage display
+    HoTTV4ElectricAirModule.alarmInverse1 |= 0x80; // Invert Voltage display
   } 
 }
 
@@ -105,7 +115,7 @@ static void hottV4SendEAM() {
  
   /** Reset alarms */
   HoTTV4ElectricAirModule.alarmTone = 0x0;
-  HoTTV4ElectricAirModule.alarmInverse = 0x0;
+  HoTTV4ElectricAirModule.alarmInverse1 = 0x0;
   
   hottV4EAMUpdateBattery();
   hottV4EAMUpdateTemperatures();
@@ -119,10 +129,53 @@ static void hottV4SendEAM() {
     Serial.println(" --- EAM --- ");
     
     Serial.print("   VBat: ");
-    Serial.println(HoTTV4ElectricAirModule.driveVoltage, DEC);
+    Serial.println(HoTTV4ElectricAirModule.driveVoltageLow + (HoTTV4ElectricAirModule.driveVoltageHigh * 256), DEC);
     
     Serial.print("Current: ");
     Serial.println(HoTTV4ElectricAirModule.current, DEC);
+    Serial.println("");
+  #endif
+
+  // Clear output buffer
+  memset(&outBuffer, 0, sizeof(outBuffer));
+  
+  // Copy EAM data to output buffer
+  memcpy(&outBuffer, &HoTTV4ElectricAirModule, kHoTTv4BinaryPacketSize);
+  
+  // Send data from output buffer
+  hottV4SendData(outBuffer, kHoTTv4BinaryPacketSize);
+}
+
+/**
+ * Sends HoTTv4 capable EAM telemetry frame.
+ */
+static void hottV4SendGPS() {
+  /** Minimum data set for EAM */
+  HoTTV4GPSModule.startByte = 0x7C;
+  HoTTV4GPSModule.sensorID = HOTTV4_GPS_SENSOR_ID;
+  HoTTV4GPSModule.sensorTextID = HOTTV4_GPS_SENSOR_TEXT_ID;
+  HoTTV4GPSModule.endByte = 0x7D;
+  /** ### */
+ 
+  /** Reset alarms */
+  HoTTV4GPSModule.alarmTone = 0x0;
+  HoTTV4GPSModule.alarmInverse1 = 0x0;
+  
+//  hottV4EAMUpdateBattery();
+
+//  HoTTV4GPSModule.current = MultiHoTTModule.current / 10; 
+//  HoTTV4GPSModule.height = OFFSET_HEIGHT + MultiHoTTModule.height;
+//  HoTTV4GPSModule.m2s = OFFSET_M2S; 
+//  HoTTV4GPSModule.m3s = OFFSET_M3S;
+  
+  #ifdef DEBUG
+    Serial.println(" --- GPS --- ");
+    
+    Serial.print("   Latitude: ");
+    Serial.println(HoTTV4GPSModule.Latitude1);
+    
+    Serial.print(" Longtitude: ");
+    Serial.println(HoTTV4GPSModule.longitude1);
     Serial.println("");
   #endif
 
