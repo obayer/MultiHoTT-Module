@@ -12,7 +12,7 @@ struct {
   
   uint8_t temp;
   
-  uint32_t height;
+  uint32_t altitude;
   uint16_t current;
 } MultiHoTTModule;
 

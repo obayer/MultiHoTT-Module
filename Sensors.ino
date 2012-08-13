@@ -29,7 +29,7 @@ void sensorsReadVBAT() {
   val = analogRead(CELL4);
   val = val * cali_cell4;
   MultiHoTTModule.cell4 = val * 0.00488;
-  MultiHoTTModule.vbat = MultiHoTTModule.cell1 + MultiHoTTModule.cell2 + MultiHoTTModule.cell3 + MultiHoTTModule.cell4;
+  MultiHoTTModule.vbat1 = MultiHoTTModule.cell1 + MultiHoTTModule.cell2 + MultiHoTTModule.cell3 + MultiHoTTModule.cell4;
   #ifdef DEBUG
 //      Serial.print("Cell-1: ");
 //      Serial.println(MultiHoTTModule.cell1,DEC);

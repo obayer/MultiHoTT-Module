@@ -121,16 +121,19 @@ static void hottV4SendEAM() {
   hottV4EAMUpdateTemperatures();
 
   HoTTV4ElectricAirModule.current = MultiHoTTModule.current / 10; 
-  HoTTV4ElectricAirModule.height = OFFSET_HEIGHT + MultiHoTTModule.height;
+  HoTTV4ElectricAirModule.height = OFFSET_HEIGHT + MultiHoTTModule.altitude;
   HoTTV4ElectricAirModule.m2s = OFFSET_M2S; 
   HoTTV4ElectricAirModule.m3s = OFFSET_M3S;
   
   #ifdef DEBUG
     Serial.println(" --- EAM --- ");
     
-    Serial.print("   VBat: ");
+    Serial.print("   VBat1: ");
     Serial.println(HoTTV4ElectricAirModule.driveVoltageLow + (HoTTV4ElectricAirModule.driveVoltageHigh * 256), DEC);
-    
+    #ifdef MultiWii_VBat
+      Serial.print("   VBat2: ");
+      Serial.println(HoTTV4ElectricAirModule.VBat2 + (HoTTV4ElectricAirModule.VBat2 * 256), DEC);
+    #endif
     Serial.print("Current: ");
     Serial.println(HoTTV4ElectricAirModule.current, DEC);
     Serial.println("");

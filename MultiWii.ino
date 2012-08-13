@@ -127,11 +127,12 @@ static void mwEvaluateMSPResponse(uint8_t cmd, uint8_t *data) {
  * Reads VBAT from given MSP data frame and stores it for later usage.
  */
 static void mwEvaluateMSP_BAT(uint8_t *data) {
-  MultiHoTTModule.vbat = data[0];
+  MultiHoTTModule.vbat2 = data[0];
 }
 
 /**
  * Reads altitude from MSP data frame and stores it for later usage.
  */
 static void mwEvaluateMSP_ALTITUDE(uint8_t *data) {
+  MultiHoTTModule.altitude = data[0]+(data[1]*0x100)+(data[2]*0x10000)+(data[4]*0x1000000);
 }
