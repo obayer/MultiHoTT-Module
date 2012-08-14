@@ -109,6 +109,7 @@ static void hottV4GPSUpdate() {
     /** GPS fix */
     HoTTV4GPSModule.GPS_fix = 0x66; // Displays a 'f' for fix
     //latitude
+    HoTTV4GPSModule.LatitudeNS=(MultiHoTTModule.GPS_latitude<0)
     uint8_t deg = MultiHoTTModule.GPS_latitude / 100000;
     uint32_t sec = (MultiHoTTModule.GPS_latitude - (deg * 100000)) * 6;
     uint8_t min = sec / 10000;
@@ -119,6 +120,7 @@ static void hottV4GPSUpdate() {
     HoTTV4GPSModule.LatitudeSecLow = sec; 
     HoTTV4GPSModule.LatitudeSecHigh = sec >> 8;
     //latitude
+    HoTTV4GPSModule.LatitudeEW=(MultiHoTTModule.GPS_longitude<0)
     deg = MultiHoTTModule.GPS_longitude / 100000;
     sec = (MultiHoTTModule.GPS_longitude - (deg * 100000)) * 6;
     min = sec / 10000;
@@ -212,10 +214,10 @@ static void hottV4SendGPS() {
     Serial.println(" --- GPS --- ");
     
     Serial.print("   Latitude: ");
-    Serial.println(HoTTV4GPSModule.Latitude1);
+    Serial.println(HoTTV4GPSModule.Latitude);
     
     Serial.print(" Longtitude: ");
-    Serial.println(HoTTV4GPSModule.longitude1);
+    Serial.println(HoTTV4GPSModule.longitude);
     Serial.println("");
   #endif
 

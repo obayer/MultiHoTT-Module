@@ -127,13 +127,13 @@ struct {
   uint8_t GPSSpeedLow;             /* Byte 8: 8 = Geschwindigkeit/GPS speed low byte 8km/h */
   uint8_t GPSSpeedHigh;            /* Byte 9: 0 = Geschwindigkeit/GPS speed high byte */
   
-  uint8_t Latitude1;               /* Byte 10: 000 = N = 48°39’988 */
+  uint8_t LatitudeNS;              /* Byte 10: 000 = N = 48°39’988 */
   uint8_t LatitudeMinLow;          /* Byte 11: 231 0xE7 = 0x12E7 = 4839 */
   uint8_t LatitudeMinHigh;         /* Byte 12: 018 18 = 0x12 */
   uint8_t LatitudeSecLow;          /* Byte 13: 171 220 = 0xDC = 0x03DC =0988 */
   uint8_t LatitudeSecHigh;         /* Byte 14: 016 3 = 0x03 */
  
-  uint8_t longitude1;              /* Byte 15: 000  = E= 9° 25’9360 */
+  uint8_t longitude1EW;            /* Byte 15: 000  = E= 9° 25’9360 */
   uint8_t longitudeMinLow;         /* Byte 16: 150 157 = 0x9D = 0x039D = 0925 */
   uint8_t longitudeMinHigh;        /* Byte 17: 003 3 = 0x03 */
   uint8_t longitudeSecLow;         /* Byte 18: 056 144 = 0x90 0x2490 = 9360*/
