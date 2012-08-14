@@ -74,7 +74,7 @@ void loop() {
         state++;
         break;
 
-      default:
+     default:
         state = 0;
     }
   }

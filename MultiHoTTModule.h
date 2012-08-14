@@ -3,8 +3,9 @@
 
 struct {
   uint16_t vbat1;  //VBat MultiWiiModule
-  uint16_t vbat2;  //VBat MultiWii FlightControll
-
+  uint8_t vbat2;  //VBat MultiWii FlightControll
+  uint16_t intPowerMeterSum; 
+  
   uint16_t cell1;
   uint16_t cell2;
   uint16_t cell3;
@@ -12,8 +13,24 @@ struct {
   
   uint8_t temp;
   
+  uint16_t attitudeAngles1;
+  uint16_t attitudeAngles2;
+  uint16_t attitudeHeading;
+  
   uint32_t altitude;
   uint16_t current;
+
+  uint8_t GPS_fix;
+  uint8_t GPS_numSat;
+  uint32_t GPS_latitude;
+  uint32_t GPS_longitude;
+  uint16_t GPS_altitude;
+  uint16_t GPS_speed;
+
+  uint16_t GPS_distanceToHome;
+  uint16_t GPS_directionToHome;
+  uint8_t GPS_update;    
+  
 } MultiHoTTModule;
 
 struct {

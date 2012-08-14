@@ -128,16 +128,16 @@ struct {
   uint8_t GPSSpeedHigh;            /* Byte 9: 0 = Geschwindigkeit/GPS speed high byte */
   
   uint8_t Latitude1;               /* Byte 10: 000 = N = 48°39’988 */
-  uint8_t Latitude2;               /* Byte 11: 231 0xE7 = 0x12E7 = 4839 */
-  uint8_t Latitude3;               /* Byte 12: 018 18 = 0x12 */
-  uint8_t Latitude4;               /* Byte 13: 171 220 = 0xDC = 0x03DC =0988 */
-  uint8_t Latitude5;               /* Byte 14: 016 3 = 0x03 */
+  uint8_t LatitudeMinLow;          /* Byte 11: 231 0xE7 = 0x12E7 = 4839 */
+  uint8_t LatitudeMinHigh;         /* Byte 12: 018 18 = 0x12 */
+  uint8_t LatitudeSecLow;          /* Byte 13: 171 220 = 0xDC = 0x03DC =0988 */
+  uint8_t LatitudeSecHigh;         /* Byte 14: 016 3 = 0x03 */
  
   uint8_t longitude1;              /* Byte 15: 000  = E= 9° 25’9360 */
-  uint8_t longitude2;              /* Byte 16: 150 157 = 0x9D = 0x039D = 0925 */
-  uint8_t longitude3;              /* Byte 17: 003 3 = 0x03 */
-  uint8_t longitude4;              /* Byte 18: 056 144 = 0x90 0x2490 = 9360*/
-  uint8_t longitude5;              /* Byte 19: 004 36 = 0x24 */
+  uint8_t longitudeMinLow;         /* Byte 16: 150 157 = 0x9D = 0x039D = 0925 */
+  uint8_t longitudeMinHigh;        /* Byte 17: 003 3 = 0x03 */
+  uint8_t longitudeSecLow;         /* Byte 18: 056 144 = 0x90 0x2490 = 9360*/
+  uint8_t longitudeSecHigh;        /* Byte 19: 004 36 = 0x24 */
   
   uint8_t distanceLow;             /* Byte 20: 027 123 = Entfernung/distance low byte 6 = 6 m */
   uint8_t distanceHigh;            /* Byte 21: 036 35 = Entfernung/distance high byte */
@@ -146,7 +146,7 @@ struct {
   uint8_t resolutionLow;           /* Byte 24: 48 = Low Byte m/s resolution 0.01m 48 = 30000 = 0.00m/s (1=0.01m/s) */
   uint8_t resolutionHigh;          /* Byte 25: 117 = High Byte m/s resolution 0.01m */
   uint8_t unknow1; /* Byte 26: 120 = 0m/3s */
-  uint8_t GPSNumberOfSatelites;    /* Byte 27: GPS.Satelites (number of satelites) (1 byte) */
+  uint8_t GPSNumSat;               /* Byte 27: GPS.Satelites (number of satelites) (1 byte) */
   uint8_t GPSFixChar;              /* Byte 28: GPS.FixChar. (GPS fix character. display, if DGPS, 2D oder 3D) (1 byte) */
   uint8_t HomeDirection;           /* Byte 29: HomeDirection (direction from starting point to Model position) (1 byte) */
   uint8_t angleXdirection;         /* Byte 30: angle x-direction (1 byte) */
@@ -161,7 +161,7 @@ struct {
   uint8_t vibration;               /* Byte 39: vibration (1 bytes) */
   uint8_t Ascii4;                  /* Byte 40: 00 ASCII Free Character [4] */
   uint8_t Ascii5;                  /* Byte 41: 00 ASCII Free Character [5] */
-  uint8_t Ascii6;                  /* Byte 42: 00 ASCII Free Character [6] */
+  uint8_t GPS_fix;                 /* Byte 42: 00 ASCII Free Character [6], we use it for GPS FIX */
   uint8_t version;                 /* Byte 43: 00 version number */
   uint8_t endByte;                 /* Byte 44: 0x7D Ende byte */
   uint8_t chksum;                  /* Byte 45: Parity Byte */

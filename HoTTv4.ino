@@ -82,8 +82,8 @@ static void hottV4EAMUpdateBattery() {
   HoTTV4ElectricAirModule.battery1Low = MultiHoTTModule.vbat1&0x00FF; 
   HoTTV4ElectricAirModule.battery1High = MultiHoTTModule.vbat1 >> 8; 
   #ifdef MultiWii_VBat
-  HoTTV4ElectricAirModule.battery2Low = 0; 
-  HoTTV4ElectricAirModule.battery2High = 0; 
+  HoTTV4ElectricAirModule.battery2Low = MultiHoTTModule.vbat2&0x00FF; 
+  HoTTV4ElectricAirModule.battery2High = MultiHoTTModule.vbat2 >> 8;
   #endif
 
   if ( MultiHoTTModule.vbat1 <= MultiHoTTModuleSettings.alarmVBat) {
@@ -101,6 +101,51 @@ static void hottV4EAMUpdateTemperatures() {
   //  HoTTV4ElectricAirModule.alarmInverse |= 0x8; // Invert Temp1 display
   //}
 }
+
+static void hottV4GPSUpdate() {
+  //number of Satelites
+  HoTTV4GPSModule.GPSNumSat=MultiHoTTModule.GPS_numSat;
+  if (MultiHoTTModule.GPS_fix) { 
+    /** GPS fix */
+    HoTTV4GPSModule.GPS_fix = 0x66; // Displays a 'f' for fix
+    //latitude
+    uint8_t deg = MultiHoTTModule.GPS_latitude / 100000;
+    uint32_t sec = (MultiHoTTModule.GPS_latitude - (deg * 100000)) * 6;
+    uint8_t min = sec / 10000;
+    sec = sec % 10000;
+    uint16_t degMin = (deg * 100) + min;
+    HoTTV4GPSModule.LatitudeMinLow = degMin;
+    HoTTV4GPSModule.LatitudeMinHigh = degMin >> 8; 
+    HoTTV4GPSModule.LatitudeSecLow = sec; 
+    HoTTV4GPSModule.LatitudeSecHigh = sec >> 8;
+    //latitude
+    deg = MultiHoTTModule.GPS_longitude / 100000;
+    sec = (MultiHoTTModule.GPS_longitude - (deg * 100000)) * 6;
+    min = sec / 10000;
+    sec = sec % 10000;
+    degMin = (deg * 100) + min;
+    HoTTV4GPSModule.longitudeMinLow = degMin;
+    HoTTV4GPSModule.longitudeMinHigh = degMin >> 8; 
+    HoTTV4GPSModule.longitudeSecLow = sec; 
+    HoTTV4GPSModule.longitudeSecHigh = sec >> 8;
+    /** GPS Speed in km/h */
+    uint16_t speed = (MultiHoTTModule.GPS_speed / 100) * 36; // 0.1m/s * 0.36 = km/h
+    HoTTV4GPSModule.GPSSpeedLow = speed & 0x00FF;
+    HoTTV4GPSModule.GPSSpeedHigh = speed >> 8;
+    /** Distance to home */
+    HoTTV4GPSModule.distanceLow = MultiHoTTModule.GPS_distanceToHome & 0x00FF;
+    HoTTV4GPSModule.distanceHigh = MultiHoTTModule.GPS_distanceToHome >> 8; 
+    /** Altitude */
+    HoTTV4GPSModule.altitudeLow = MultiHoTTModule.GPS_altitude & 0x00FF;
+    HoTTV4GPSModule.altitudeHigh = MultiHoTTModule.GPS_altitude >> 8;
+    /** Altitude */
+    HoTTV4GPSModule.Direction = MultiHoTTModule.GPS_directionToHome;
+    
+  } else {
+    HoTTV4GPSModule.GPS_fix = 0x20; // Displays a ' ' to show nothing or clear the old value
+  }
+}
+
 
 /**
  * Sends HoTTv4 capable EAM telemetry frame.
@@ -127,13 +172,10 @@ static void hottV4SendEAM() {
   
   #ifdef DEBUG
     Serial.println(" --- EAM --- ");
-    
     Serial.print("   VBat1: ");
-    Serial.println(HoTTV4ElectricAirModule.driveVoltageLow + (HoTTV4ElectricAirModule.driveVoltageHigh * 256), DEC);
-    #ifdef MultiWii_VBat
-      Serial.print("   VBat2: ");
-      Serial.println(HoTTV4ElectricAirModule.VBat2 + (HoTTV4ElectricAirModule.VBat2 * 256), DEC);
-    #endif
+    Serial.println(HoTTV4ElectricAirModule.driveVoltageLow + (HoTTV4ElectricAirModule.driveVoltageHigh * 0x100), DEC);
+    Serial.print("   VBat2: ");
+    Serial.println(HoTTV4ElectricAirModule.battery2Low + (HoTTV4ElectricAirModule.battery2High * 0x100), DEC);
     Serial.print("Current: ");
     Serial.println(HoTTV4ElectricAirModule.current, DEC);
     Serial.println("");
@@ -150,7 +192,7 @@ static void hottV4SendEAM() {
 }
 
 /**
- * Sends HoTTv4 capable EAM telemetry frame.
+ * Sends HoTTv4 capable GPS telemetry frame.
  */
 static void hottV4SendGPS() {
   /** Minimum data set for EAM */
@@ -164,13 +206,8 @@ static void hottV4SendGPS() {
   HoTTV4GPSModule.alarmTone = 0x0;
   HoTTV4GPSModule.alarmInverse1 = 0x0;
   
-//  hottV4EAMUpdateBattery();
-
-//  HoTTV4GPSModule.current = MultiHoTTModule.current / 10; 
-//  HoTTV4GPSModule.height = OFFSET_HEIGHT + MultiHoTTModule.height;
-//  HoTTV4GPSModule.m2s = OFFSET_M2S; 
-//  HoTTV4GPSModule.m3s = OFFSET_M3S;
-  
+  hottV4GPSUpdate();
+ 
   #ifdef DEBUG
     Serial.println(" --- GPS --- ");
     

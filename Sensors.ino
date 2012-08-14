@@ -7,6 +7,14 @@
 //#define TEMP1 A4
 //#define CURRENT A4
 
+/** To avoid sensor jitter as found in: 
+ * http://forums.adafruit.com/viewtopic.php?f=25&t=11597
+ */
+static inline void sensorsAvoidJitter(uint8_t pin) {
+  analogRead(pin);
+  delay(25);
+}
+ 
 /**
  * Reads VBAT value on anlog input VBAT and outputs it
  * in 0.1V steps to MultiHoTTModule.vbat.
@@ -17,19 +25,24 @@ void sensorsReadVBAT() {
   // cell3 470 Ohm and  940 Ohm for 3S voltage measuring 1/2
   // cell4 470 Ohm and 1410 Ohm for 4S voltage measuring 1/3
   // 126 == 12,6V
+  sensorsAvoidJitter(CELL1);
   uint32_t val = analogRead(CELL1);
   val = val * cali_cell1;
   MultiHoTTModule.cell1 = val * 0.00488;
+  sensorsAvoidJitter(CELL2);
   val = analogRead(CELL2);
   val = val * cali_cell2;
   MultiHoTTModule.cell2 = val * 0.00488;
+  sensorsAvoidJitter(CELL3);
   val = analogRead(CELL3);
   val = val * cali_cell3;
   MultiHoTTModule.cell3 = val * 0.00488;
+  sensorsAvoidJitter(CELL4);
   val = analogRead(CELL4);
   val = val * cali_cell4;
   MultiHoTTModule.cell4 = val * 0.00488;
   MultiHoTTModule.vbat1 = MultiHoTTModule.cell1 + MultiHoTTModule.cell2 + MultiHoTTModule.cell3 + MultiHoTTModule.cell4;
+
   #ifdef DEBUG
 //      Serial.print("Cell-1: ");
 //      Serial.println(MultiHoTTModule.cell1,DEC);
