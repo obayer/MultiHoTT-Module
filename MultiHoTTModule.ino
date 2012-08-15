@@ -20,11 +20,11 @@ void setup() {
 
   // Used for debuging and to communicate with MultiWii
   Serial.begin(115200);
-  analogReference(DEFAULT);
-  cali_cell1 = 105;  
-  cali_cell2 = 105;  
-  cali_cell3 = 105;  
-  cali_cell4 = 105;  
+  analogReference(INTERNAL);
+  cali_cell1 = 517;  
+  cali_cell2 = 484;  
+  cali_cell3 = 457;  
+  cali_cell4 = 452;  
   hottV4Setup();
 
   MultiHoTTModuleSettings.alarmVBat = 104;

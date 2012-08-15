@@ -133,7 +133,7 @@ struct {
   uint8_t LatitudeSecLow;          /* Byte 13: 171 220 = 0xDC = 0x03DC =0988 */
   uint8_t LatitudeSecHigh;         /* Byte 14: 016 3 = 0x03 */
  
-  uint8_t longitude1EW;            /* Byte 15: 000  = E= 9° 25’9360 */
+  uint8_t longitudeEW;            /* Byte 15: 000  = E= 9° 25’9360 */
   uint8_t longitudeMinLow;         /* Byte 16: 150 157 = 0x9D = 0x039D = 0925 */
   uint8_t longitudeMinHigh;        /* Byte 17: 003 3 = 0x03 */
   uint8_t longitudeSecLow;         /* Byte 18: 056 144 = 0x90 0x2490 = 9360*/

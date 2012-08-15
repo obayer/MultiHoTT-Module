@@ -77,13 +77,14 @@ static void hottV4EAMUpdateBattery() {
   if (HoTTV4ElectricAirModule.cell4H < MultiHoTTModule.cell4/2) {
     HoTTV4ElectricAirModule.cell4H = MultiHoTTModule.cell4/2;
   }
-  HoTTV4ElectricAirModule.driveVoltageLow = MultiHoTTModule.vbat1&0x00FF;
+  HoTTV4ElectricAirModule.driveVoltageLow = MultiHoTTModule.vbat1 & 0xFF;
   HoTTV4ElectricAirModule.driveVoltageHigh = MultiHoTTModule.vbat1 >> 8;
-  HoTTV4ElectricAirModule.battery1Low = MultiHoTTModule.vbat1&0x00FF; 
+  HoTTV4ElectricAirModule.battery1Low = MultiHoTTModule.vbat1 & 0xFF; 
   HoTTV4ElectricAirModule.battery1High = MultiHoTTModule.vbat1 >> 8; 
+  
   #ifdef MultiWii_VBat
-  HoTTV4ElectricAirModule.battery2Low = MultiHoTTModule.vbat2&0x00FF; 
-  HoTTV4ElectricAirModule.battery2High = MultiHoTTModule.vbat2 >> 8;
+    HoTTV4ElectricAirModule.battery2Low = MultiHoTTModule.vbat2&0x00FF; 
+    HoTTV4ElectricAirModule.battery2High = MultiHoTTModule.vbat2 >> 8;
   #endif
 
   if ( MultiHoTTModule.vbat1 <= MultiHoTTModuleSettings.alarmVBat) {
@@ -109,7 +110,7 @@ static void hottV4GPSUpdate() {
     /** GPS fix */
     HoTTV4GPSModule.GPS_fix = 0x66; // Displays a 'f' for fix
     //latitude
-    HoTTV4GPSModule.LatitudeNS=(MultiHoTTModule.GPS_latitude<0)
+    HoTTV4GPSModule.LatitudeNS=(MultiHoTTModule.GPS_latitude<0);
     uint8_t deg = MultiHoTTModule.GPS_latitude / 100000;
     uint32_t sec = (MultiHoTTModule.GPS_latitude - (deg * 100000)) * 6;
     uint8_t min = sec / 10000;
@@ -120,7 +121,7 @@ static void hottV4GPSUpdate() {
     HoTTV4GPSModule.LatitudeSecLow = sec; 
     HoTTV4GPSModule.LatitudeSecHigh = sec >> 8;
     //latitude
-    HoTTV4GPSModule.LatitudeEW=(MultiHoTTModule.GPS_longitude<0)
+    HoTTV4GPSModule.longitudeEW=(MultiHoTTModule.GPS_longitude<0);
     deg = MultiHoTTModule.GPS_longitude / 100000;
     sec = (MultiHoTTModule.GPS_longitude - (deg * 100000)) * 6;
     min = sec / 10000;
@@ -141,7 +142,7 @@ static void hottV4GPSUpdate() {
     HoTTV4GPSModule.altitudeLow = MultiHoTTModule.GPS_altitude & 0x00FF;
     HoTTV4GPSModule.altitudeHigh = MultiHoTTModule.GPS_altitude >> 8;
     /** Altitude */
-    HoTTV4GPSModule.Direction = MultiHoTTModule.GPS_directionToHome;
+    HoTTV4GPSModule.HomeDirection = MultiHoTTModule.GPS_directionToHome;
     
   } else {
     HoTTV4GPSModule.GPS_fix = 0x20; // Displays a ' ' to show nothing or clear the old value
@@ -174,6 +175,10 @@ static void hottV4SendEAM() {
   
   #ifdef DEBUG
     Serial.println(" --- EAM --- ");
+    Serial.print("     Low: ");
+    Serial.print(HoTTV4ElectricAirModule.battery1Low);
+    Serial.print("    High: ");
+    Serial.println(HoTTV4ElectricAirModule.battery1High);
     Serial.print("   VBat1: ");
     Serial.println(HoTTV4ElectricAirModule.driveVoltageLow + (HoTTV4ElectricAirModule.driveVoltageHigh * 0x100), DEC);
     Serial.print("   VBat2: ");
@@ -214,10 +219,10 @@ static void hottV4SendGPS() {
     Serial.println(" --- GPS --- ");
     
     Serial.print("   Latitude: ");
-    Serial.println(HoTTV4GPSModule.Latitude);
+    Serial.println(HoTTV4GPSModule.LatitudeMinLow);
     
     Serial.print(" Longtitude: ");
-    Serial.println(HoTTV4GPSModule.longitude);
+    Serial.println(HoTTV4GPSModule.longitudeMinLow);
     Serial.println("");
   #endif
 

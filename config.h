@@ -10,3 +10,5 @@
  */
 //#define MultiWii_VBat
 
+#define DEBUG
+
