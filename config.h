@@ -10,5 +10,20 @@
  */
 //#define MultiWii_VBat
 
+/**
+ * MultiWii has GPS function
+ */
+//#define MultiWii_GPS
+
+/**
+ * Cell measurement calibration 
+ */
+#define cali_cell1  517 
+#define cali_cell2  484 
+#define cali_cell3  457 
+#define cali_cell4  452
+
+
+
 #define DEBUG
 

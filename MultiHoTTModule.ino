@@ -10,10 +10,10 @@
 
 #define DEBUG
 #define LED 13
-static uint16_t cali_cell1;
-static uint16_t cali_cell2;
-static uint16_t cali_cell3;
-static uint16_t cali_cell4;
+//static uint16_t cali_cell1;
+//static uint16_t cali_cell2;
+//static uint16_t cali_cell3;
+//static uint16_t cali_cell4;
 
 void setup() {
   pinMode(LED, OUTPUT);
@@ -21,10 +21,10 @@ void setup() {
   // Used for debuging and to communicate with MultiWii
   Serial.begin(115200);
   analogReference(INTERNAL);
-  cali_cell1 = 517;  
-  cali_cell2 = 484;  
-  cali_cell3 = 457;  
-  cali_cell4 = 452;  
+//  cali_cell1 = 517;  
+//  cali_cell2 = 484;  
+//  cali_cell3 = 457;  
+//  cali_cell4 = 452;  
   hottV4Setup();
 
   MultiHoTTModuleSettings.alarmVBat = 104;
