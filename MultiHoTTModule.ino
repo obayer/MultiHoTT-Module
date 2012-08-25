@@ -1,5 +1,7 @@
 #include "SoftwareSerial.h"
 #include "MultiHoTTModule.h"
+#include "config.h"
+#include <avr/io.h> 
 
 /**
  * MultiHoTT-Module is a stand alone Arduino based Application that acts as a bridge between
@@ -8,23 +10,23 @@
  * by Oliver Bayer & Carsten Giesen, 07/2012
  */
 
-#define DEBUG
 #define LED 13
-//static uint16_t cali_cell1;
-//static uint16_t cali_cell2;
-//static uint16_t cali_cell3;
-//static uint16_t cali_cell4;
+
+static int16_t  i2c_errors_count = 0; 
 
 void setup() {
   pinMode(LED, OUTPUT);
-
   // Used for debuging and to communicate with MultiWii
   Serial.begin(115200);
+  Serial.println("Modul Start");
+
   analogReference(INTERNAL);
-//  cali_cell1 = 517;  
-//  cali_cell2 = 484;  
-//  cali_cell3 = 457;  
-//  cali_cell4 = 452;  
+  
+  #if defined(OLED_I2C_128x64)
+    Serial.println("Init OLED");
+    initLCD();
+  #endif 
+
   hottV4Setup();
 
   MultiHoTTModuleSettings.alarmVBat = 104;

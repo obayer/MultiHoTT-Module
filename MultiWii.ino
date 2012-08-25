@@ -18,11 +18,11 @@
 #define MSP_COMP_GPS  107   //out message         distance home, direction home
 #define MSP_ATTITUDE  108   //out message         2 angles 1 heading 
 #define MSP_ALTITUDE  109   //out message         1 altitude 
-#define DEBUG
+#define MSP_HEADING   125   //out message         headings and MAG configuration 
 
 static uint8_t inBuffer[INPUT_BUFFER_SIZE];
 
-const static uint8_t schedule[] = { MSP_BAT, MSP_ALTITUDE, MSP_COMP_GPS };
+const static uint8_t schedule[] = { MSP_BAT, MSP_ALTITUDE, MSP_COMP_GPS, MSP_HEADING };
 
 /**
  * Main method of MultiWii integration.
@@ -132,6 +132,9 @@ static void mwEvaluateMSPResponse(uint8_t cmd, uint8_t *data) {
     case MSP_COMP_GPS:
       mwEvaluateMSP_COMP_GPS(data);
       break;
+    case MSP_HEADING:
+      mwEvaluateMSP_HEADING(data);
+      break;
   }
 }
 
@@ -169,6 +172,7 @@ static void mwEvaluateMSP_RAW_GPS(uint8_t *data) {
   MultiHoTTModule.GPS_longitude = data[6]+(data[7]*0x100)+(data[8]*0x10000)+(data[9]*0x1000000);
   MultiHoTTModule.GPS_altitude = data[10]+(data[11]*0x100);
   MultiHoTTModule.GPS_speed = data[12]+(data[13]*0x100);
+  MultiHoTTModule.GPS_directionToHome = data[1];
 }
 
 /**
@@ -182,3 +186,20 @@ static void mwEvaluateMSP_COMP_GPS(uint8_t *data) {
   MultiHoTTModule.GPS_directionToHome = data[2]+(data[3]*0x100);
   MultiHoTTModule.GPS_update = data[4];
 }
+
+/**
+ * Reads HEADING from MSP data frame and stores it for later usage.
+ */
+static void mwEvaluateMSP_HEADING(uint8_t *data) {
+//     serialize8( f.MAG_MODE<<0 | f.HEADFREE_MODE<<1 );
+//     serialize16(heading);
+//     serialize16(magHold);
+//     serialize16(headFreeModeHold);
+  MultiHoTTModule.mode = data[1];
+  MultiHoTTModule.heading = data[1]+(data[2]*0x100);
+  MultiHoTTModule.magHold = data[3]+(data[4]*0x100);
+  MultiHoTTModule.headFreeModeHold = data[5]+(data[6]*0x100);
+
+}
+
+

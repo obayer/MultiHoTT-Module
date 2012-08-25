@@ -27,9 +27,16 @@ struct {
   uint16_t GPS_altitude;
   uint16_t GPS_speed;
 
+  //MSP_COMP_GPS
   uint16_t GPS_distanceToHome;
   uint16_t GPS_directionToHome;
   uint8_t GPS_update;    
+
+  //MSP_HEADING
+  uint8_t mode;
+  uint16_t heading;
+  uint16_t magHold;
+  uint16_t headFreeModeHold;
   
 } MultiHoTTModule;
 

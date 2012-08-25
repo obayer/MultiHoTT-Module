@@ -4,8 +4,8 @@
 #define CELL2 A2
 #define CELL3 A1
 #define CELL4 A0
-//#define TEMP1 A4
-//#define CURRENT A4
+//#define TEMP1 A6
+//#define CURRENT A7
 
 /** To avoid sensor jitter as found in: 
  * http://forums.adafruit.com/viewtopic.php?f=25&t=11597
@@ -45,15 +45,19 @@ void sensorsReadVBAT() {
   // 126 == 12,6V
   MultiHoTTModule.vbat1 = (MultiHoTTModule.cell1 + MultiHoTTModule.cell2 + MultiHoTTModule.cell3 + MultiHoTTModule.cell4) /10 ;
 
-  #ifdef DEBUG
-      Serial.print("Cell-1: ");
-      Serial.println(analogRead(CELL1),DEC);
-      Serial.print("Cell-2: ");
-      Serial.println(analogRead(CELL2), DEC);
-      Serial.print("Cell-3: ");
-      Serial.println(analogRead(CELL3), DEC);
-      Serial.print("Cell-4: ");
-      Serial.println(analogRead(CELL4), DEC);
+  #ifdef DEBUG_CELL
+      i2c_OLED_set_line(1);
+      i2c_OLED_Print("Cell-1: ");
+      print_Cell(MultiHoTTModule.cell1);
+      i2c_OLED_set_line(2);
+      i2c_OLED_Print("Cell-2: ");
+      print_Cell(MultiHoTTModule.cell2);
+      i2c_OLED_set_line(3);
+      i2c_OLED_Print("Cell-3: ");
+      print_Cell(MultiHoTTModule.cell3);
+      i2c_OLED_set_line(4);
+      i2c_OLED_Print("Cell-4: ");
+      print_Cell(MultiHoTTModule.cell4);
   #endif
 }
 
