@@ -18,12 +18,11 @@ void setup() {
   pinMode(LED, OUTPUT);
   // Used for debuging and to communicate with MultiWii
   Serial.begin(115200);
-  Serial.println("Modul Start");
 
   analogReference(INTERNAL);
   
   #if defined(OLED_I2C_128x64)
-    Serial.println("Init OLED");
+    //Serial.println("Init OLED");
     initLCD();
   #endif 
 
@@ -82,7 +81,7 @@ void loop() {
   }
 
   /** Request new data from MultiWii */
-  //multiWiiRequestData();
+  multiWiiRequestData();
 
   /** Send telemetry data via HoTTv4 */
   hottV4SendTelemetry();

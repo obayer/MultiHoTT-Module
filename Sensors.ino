@@ -46,17 +46,15 @@ void sensorsReadVBAT() {
   MultiHoTTModule.vbat1 = (MultiHoTTModule.cell1 + MultiHoTTModule.cell2 + MultiHoTTModule.cell3 + MultiHoTTModule.cell4) /10 ;
 
   #ifdef DEBUG_CELL
-      i2c_OLED_set_line(1);
-      i2c_OLED_Print("Cell-1: ");
+      LCD_set_line(1);
+      LCD_Print("C1: ");
       print_Cell(MultiHoTTModule.cell1);
-      i2c_OLED_set_line(2);
-      i2c_OLED_Print("Cell-2: ");
+      LCD_Print("  C2: ");
       print_Cell(MultiHoTTModule.cell2);
-      i2c_OLED_set_line(3);
-      i2c_OLED_Print("Cell-3: ");
+      LCD_set_line(2);
+      LCD_Print("C3: ");
       print_Cell(MultiHoTTModule.cell3);
-      i2c_OLED_set_line(4);
-      i2c_OLED_Print("Cell-4: ");
+      LCD_Print("  C4: ");
       print_Cell(MultiHoTTModule.cell4);
   #endif
 }

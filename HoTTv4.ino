@@ -1,7 +1,7 @@
 #include "HoTTv4.h"
 #include "MultiHoTTModule.h"
 
-#define HOTTV4_RXTX 3 
+#define HOTTV4_RXTX 4
 #define HOTTV4_TX_DELAY 1000
 
 #define HOTTV4_BUTTON_DEC 0xEB
@@ -37,15 +37,15 @@ void hottV4Setup() {
  * Enables RX and disables TX
  */
 static inline void hottV4EnableReceiverMode() {
-  DDRD &= ~(1 << 3);
-  PORTD |= (1 << 3);
+  DDRD &= ~(1 << HOTTV4_RXTX);
+  PORTD |= (1 << HOTTV4_RXTX);
 }
 
 /**
  * Enabels TX and disables RX
  */
 static inline void hottV4EnableTransmitterMode() {
-  DDRD |= (1 << 3);
+  DDRD |= (1 << HOTTV4_RXTX);
 }
 
 /**
@@ -83,7 +83,7 @@ static void hottV4EAMUpdateBattery() {
   HoTTV4ElectricAirModule.battery1High = MultiHoTTModule.vbat1 >> 8; 
   
   #ifdef MultiWii_VBat
-    HoTTV4ElectricAirModule.battery2Low = MultiHoTTModule.vbat2&0x00FF; 
+    HoTTV4ElectricAirModule.battery2Low = MultiHoTTModule.vbat2 & 0xFF; 
     HoTTV4ElectricAirModule.battery2High = MultiHoTTModule.vbat2 >> 8;
   #endif
 
@@ -173,19 +173,24 @@ static void hottV4SendEAM() {
   HoTTV4ElectricAirModule.m2s = OFFSET_M2S; 
   HoTTV4ElectricAirModule.m3s = OFFSET_M3S;
   
-  #ifdef DEBUG
-    Serial.println(" --- EAM --- ");
-    Serial.print("     Low: ");
-    Serial.print(HoTTV4ElectricAirModule.battery1Low);
-    Serial.print("    High: ");
-    Serial.println(HoTTV4ElectricAirModule.battery1High);
-    Serial.print("   VBat1: ");
-    Serial.println(HoTTV4ElectricAirModule.driveVoltageLow + (HoTTV4ElectricAirModule.driveVoltageHigh * 0x100), DEC);
-    Serial.print("   VBat2: ");
-    Serial.println(HoTTV4ElectricAirModule.battery2Low + (HoTTV4ElectricAirModule.battery2High * 0x100), DEC);
-    Serial.print("Current: ");
-    Serial.println(HoTTV4ElectricAirModule.current, DEC);
-    Serial.println("");
+  #ifdef DEBUG_HOTT
+      LCD_set_line(3);
+      LCD_Print("EAM ");
+      print_VBAT(MultiHoTTModule.vbat1);
+      LCD_Print(" ");
+      print_VBAT(MultiHoTTModule.vbat2);
+//    Serial.println(" --- EAM --- ");
+//    Serial.print("     Low: ");
+//    Serial.print(HoTTV4ElectricAirModule.battery1Low);
+//    Serial.print("    High: ");
+//    Serial.println(HoTTV4ElectricAirModule.battery1High);
+//    Serial.print("   VBat1: ");
+//    Serial.println(HoTTV4ElectricAirModule.driveVoltageLow + (HoTTV4ElectricAirModule.driveVoltageHigh * 0x100), DEC);
+//    Serial.print("   VBat2: ");
+//    Serial.println(HoTTV4ElectricAirModule.battery2Low + (HoTTV4ElectricAirModule.battery2High * 0x100), DEC);
+//    Serial.print("Current: ");
+//    Serial.println(HoTTV4ElectricAirModule.current, DEC);
+//    Serial.println("");
   #endif
 
   // Clear output buffer
@@ -215,15 +220,11 @@ static void hottV4SendGPS() {
   
   hottV4GPSUpdate();
  
-  #ifdef DEBUG
-    Serial.println(" --- GPS --- ");
-    
-    Serial.print("   Latitude: ");
-    Serial.println(HoTTV4GPSModule.LatitudeMinLow);
-    
-    Serial.print(" Longtitude: ");
-    Serial.println(HoTTV4GPSModule.longitudeMinLow);
-    Serial.println("");
+  #ifdef DEBUG_HOTT
+      LCD_set_line(4);
+      print_GPSLine1(MultiHoTTModule.GPS_numSat);
+      LCD_set_line(5);
+      print_GPSLine2(MultiHoTTModule.GPS_longitude,MultiHoTTModule.GPS_latitude);
   #endif
 
   // Clear output buffer
@@ -386,6 +387,7 @@ void hottV4SendTelemetry() {
   } hottV4_state = IDLE;
   
   if (hottV4Serial.available() > 1) {
+    //Serial.println(" --- HOTT --- ");
     for (uint8_t i = 0; i < 2; i++) {
       uint8_t c = hottV4Serial.read();
 
@@ -403,10 +405,15 @@ void hottV4SendTelemetry() {
       } else if (BINARY == hottV4_state) {
         switch (c) {
           case HOTTV4_ELECTRICAL_AIR_SENSOR_ID:
+            //Serial.println(" --- EAM --- ");
             hottV4SendEAM();
             hottV4_state = IDLE;
             break;
-
+          case HOTTV4_GPS_SENSOR_ID:
+            //Serial.println(" --- GPS --- ");
+            hottV4SendGPS();
+            hottV4_state = IDLE;
+            break;
           default:
             hottV4_state = IDLE;
         }
