@@ -1,7 +1,7 @@
 #include "HoTTv4.h"
 #include "MultiHoTTModule.h"
 
-#define HOTTV4_RXTX 4
+#define HOTTV4_RXTX 6
 #define HOTTV4_TX_DELAY 1000
 
 #define HOTTV4_BUTTON_DEC 0xEB

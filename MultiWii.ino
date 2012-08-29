@@ -22,7 +22,7 @@
 
 static uint8_t inBuffer[INPUT_BUFFER_SIZE];
 
-const static uint8_t schedule[] = { MSP_BAT, MSP_ALTITUDE, MSP_COMP_GPS, MSP_HEADING };
+const static uint8_t schedule[] = { MSP_BAT, MSP_ALTITUDE, MSP_RAW_GPS, MSP_COMP_GPS, MSP_HEADING };
 
 /**
  * Main method of MultiWii integration.
@@ -144,6 +144,13 @@ static void mwEvaluateMSPResponse(uint8_t cmd, uint8_t *data) {
 static void mwEvaluateMSP_BAT(uint8_t *data) {
   MultiHoTTModule.vbat2 = data[0];
   MultiHoTTModule.intPowerMeterSum = data[1]+(data[2]*0x100);
+  #ifdef DEBUG_MWii
+      LCD_set_line(3);
+      LCD_Print("EAM ");
+      print_VBAT(MultiHoTTModule.vbat1);
+      LCD_Print(" ");
+      print_VBAT(MultiHoTTModule.vbat2);
+  #endif
 }
 
 /**
@@ -164,6 +171,7 @@ static void mwEvaluateMSP_ATTITUDE(uint8_t *data) {
 
 /**
  * Reads RAW_GPS from MSP data frame and stores it for later usage.
+ //out message         fix, numsat, lat, lon, alt, speed
  */
 static void mwEvaluateMSP_RAW_GPS(uint8_t *data) {
   MultiHoTTModule.GPS_fix = data[0];
@@ -172,11 +180,17 @@ static void mwEvaluateMSP_RAW_GPS(uint8_t *data) {
   MultiHoTTModule.GPS_longitude = data[6]+(data[7]*0x100)+(data[8]*0x10000)+(data[9]*0x1000000);
   MultiHoTTModule.GPS_altitude = data[10]+(data[11]*0x100);
   MultiHoTTModule.GPS_speed = data[12]+(data[13]*0x100);
-  MultiHoTTModule.GPS_directionToHome = data[1];
+  #ifdef DEBUG_MWii
+      LCD_set_line(4);
+      print_GPSLine1(MultiHoTTModule.GPS_numSat);
+      LCD_set_line(5);
+      print_GPSLine2(MultiHoTTModule.GPS_longitude,MultiHoTTModule.GPS_latitude);
+  #endif
 }
 
 /**
  * Reads COMP_GPS from MSP data frame and stores it for later usage.
+ //out message         distance home, direction home
  */
 static void mwEvaluateMSP_COMP_GPS(uint8_t *data) {
 //     serialize16(GPS_distanceToHome);
