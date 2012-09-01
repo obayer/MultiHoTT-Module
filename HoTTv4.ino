@@ -1,7 +1,7 @@
 #include "HoTTv4.h"
 #include "MultiHoTTModule.h"
 
-#define HOTTV4_RXTX 6
+#define HOTTV4_RXTX 4
 #define HOTTV4_TX_DELAY 1000
 
 #define HOTTV4_BUTTON_DEC 0xEB
@@ -103,52 +103,53 @@ static void hottV4EAMUpdateTemperatures() {
   //}
 }
 
-static void hottV4GPSUpdate() {
-  //number of Satelites
-  HoTTV4GPSModule.GPSNumSat=MultiHoTTModule.GPS_numSat;
-  if (MultiHoTTModule.GPS_fix) { 
-    /** GPS fix */
-    HoTTV4GPSModule.GPS_fix = 0x66; // Displays a 'f' for fix
-    //latitude
-    HoTTV4GPSModule.LatitudeNS=(MultiHoTTModule.GPS_latitude<0);
-    uint8_t deg = MultiHoTTModule.GPS_latitude / 100000;
-    uint32_t sec = (MultiHoTTModule.GPS_latitude - (deg * 100000)) * 6;
-    uint8_t min = sec / 10000;
-    sec = sec % 10000;
-    uint16_t degMin = (deg * 100) + min;
-    HoTTV4GPSModule.LatitudeMinLow = degMin;
-    HoTTV4GPSModule.LatitudeMinHigh = degMin >> 8; 
-    HoTTV4GPSModule.LatitudeSecLow = sec; 
-    HoTTV4GPSModule.LatitudeSecHigh = sec >> 8;
-    //latitude
-    HoTTV4GPSModule.longitudeEW=(MultiHoTTModule.GPS_longitude<0);
-    deg = MultiHoTTModule.GPS_longitude / 100000;
-    sec = (MultiHoTTModule.GPS_longitude - (deg * 100000)) * 6;
-    min = sec / 10000;
-    sec = sec % 10000;
-    degMin = (deg * 100) + min;
-    HoTTV4GPSModule.longitudeMinLow = degMin;
-    HoTTV4GPSModule.longitudeMinHigh = degMin >> 8; 
-    HoTTV4GPSModule.longitudeSecLow = sec; 
-    HoTTV4GPSModule.longitudeSecHigh = sec >> 8;
-    /** GPS Speed in km/h */
-    uint16_t speed = (MultiHoTTModule.GPS_speed / 100) * 36; // 0.1m/s * 0.36 = km/h
-    HoTTV4GPSModule.GPSSpeedLow = speed & 0x00FF;
-    HoTTV4GPSModule.GPSSpeedHigh = speed >> 8;
-    /** Distance to home */
-    HoTTV4GPSModule.distanceLow = MultiHoTTModule.GPS_distanceToHome & 0x00FF;
-    HoTTV4GPSModule.distanceHigh = MultiHoTTModule.GPS_distanceToHome >> 8; 
-    /** Altitude */
-    HoTTV4GPSModule.altitudeLow = MultiHoTTModule.GPS_altitude & 0x00FF;
-    HoTTV4GPSModule.altitudeHigh = MultiHoTTModule.GPS_altitude >> 8;
-    /** Altitude */
-    HoTTV4GPSModule.HomeDirection = MultiHoTTModule.GPS_directionToHome;
-    
-  } else {
-    HoTTV4GPSModule.GPS_fix = 0x20; // Displays a ' ' to show nothing or clear the old value
+#ifdef MultiWii_GPS
+  static void hottV4GPSUpdate() {
+    //number of Satelites
+    HoTTV4GPSModule.GPSNumSat=MultiHoTTModule.GPS_numSat;
+    if (MultiHoTTModule.GPS_fix) { 
+      /** GPS fix */
+      HoTTV4GPSModule.GPS_fix = 0x66; // Displays a 'f' for fix
+      //latitude
+      HoTTV4GPSModule.LatitudeNS=(MultiHoTTModule.GPS_latitude<0);
+      uint8_t deg = MultiHoTTModule.GPS_latitude / 100000;
+      uint32_t sec = (MultiHoTTModule.GPS_latitude - (deg * 100000)) * 6;
+      uint8_t min = sec / 10000;
+      sec = sec % 10000;
+      uint16_t degMin = (deg * 100) + min;
+      HoTTV4GPSModule.LatitudeMinLow = degMin;
+      HoTTV4GPSModule.LatitudeMinHigh = degMin >> 8; 
+      HoTTV4GPSModule.LatitudeSecLow = sec; 
+      HoTTV4GPSModule.LatitudeSecHigh = sec >> 8;
+      //latitude
+      HoTTV4GPSModule.longitudeEW=(MultiHoTTModule.GPS_longitude<0);
+      deg = MultiHoTTModule.GPS_longitude / 100000;
+      sec = (MultiHoTTModule.GPS_longitude - (deg * 100000)) * 6;
+      min = sec / 10000;
+      sec = sec % 10000;
+      degMin = (deg * 100) + min;
+      HoTTV4GPSModule.longitudeMinLow = degMin;
+      HoTTV4GPSModule.longitudeMinHigh = degMin >> 8; 
+      HoTTV4GPSModule.longitudeSecLow = sec; 
+      HoTTV4GPSModule.longitudeSecHigh = sec >> 8;
+      /** GPS Speed in km/h */
+      uint16_t speed = (MultiHoTTModule.GPS_speed / 100) * 36; // 0.1m/s * 0.36 = km/h
+      HoTTV4GPSModule.GPSSpeedLow = speed & 0x00FF;
+      HoTTV4GPSModule.GPSSpeedHigh = speed >> 8;
+      /** Distance to home */
+      HoTTV4GPSModule.distanceLow = MultiHoTTModule.GPS_distanceToHome & 0x00FF;
+      HoTTV4GPSModule.distanceHigh = MultiHoTTModule.GPS_distanceToHome >> 8; 
+      /** Altitude */
+      HoTTV4GPSModule.altitudeLow = MultiHoTTModule.GPS_altitude & 0x00FF;
+      HoTTV4GPSModule.altitudeHigh = MultiHoTTModule.GPS_altitude >> 8;
+      /** Altitude */
+      HoTTV4GPSModule.HomeDirection = MultiHoTTModule.GPS_directionToHome;
+      
+    } else {
+      HoTTV4GPSModule.GPS_fix = 0x20; // Displays a ' ' to show nothing or clear the old value
+    }
   }
-}
-
+#endif
 
 /**
  * Sends HoTTv4 capable EAM telemetry frame.
@@ -203,39 +204,41 @@ static void hottV4SendEAM() {
   hottV4SendData(outBuffer, kHoTTv4BinaryPacketSize);
 }
 
-/**
- * Sends HoTTv4 capable GPS telemetry frame.
- */
-static void hottV4SendGPS() {
-  /** Minimum data set for EAM */
-  HoTTV4GPSModule.startByte = 0x7C;
-  HoTTV4GPSModule.sensorID = HOTTV4_GPS_SENSOR_ID;
-  HoTTV4GPSModule.sensorTextID = HOTTV4_GPS_SENSOR_TEXT_ID;
-  HoTTV4GPSModule.endByte = 0x7D;
-  /** ### */
- 
-  /** Reset alarms */
-  HoTTV4GPSModule.alarmTone = 0x0;
-  HoTTV4GPSModule.alarmInverse1 = 0x0;
+#ifdef MultiWii_GPS
+  /**
+   * Sends HoTTv4 capable GPS telemetry frame.
+   */
+  static void hottV4SendGPS() {
+    /** Minimum data set for EAM */
+    HoTTV4GPSModule.startByte = 0x7C;
+    HoTTV4GPSModule.sensorID = HOTTV4_GPS_SENSOR_ID;
+    HoTTV4GPSModule.sensorTextID = HOTTV4_GPS_SENSOR_TEXT_ID;
+    HoTTV4GPSModule.endByte = 0x7D;
+    /** ### */
+   
+    /** Reset alarms */
+    HoTTV4GPSModule.alarmTone = 0x0;
+    HoTTV4GPSModule.alarmInverse1 = 0x0;
+    
+    hottV4GPSUpdate();
+   
+    #ifdef DEBUG_HOTT
+        LCD_set_line(4);
+        print_GPSLine1(MultiHoTTModule.GPS_numSat);
+        LCD_set_line(5);
+        print_GPSLine2(MultiHoTTModule.GPS_longitude,MultiHoTTModule.GPS_latitude);
+    #endif
   
-  hottV4GPSUpdate();
- 
-  #ifdef DEBUG_HOTT
-      LCD_set_line(4);
-      print_GPSLine1(MultiHoTTModule.GPS_numSat);
-      LCD_set_line(5);
-      print_GPSLine2(MultiHoTTModule.GPS_longitude,MultiHoTTModule.GPS_latitude);
-  #endif
-
-  // Clear output buffer
-  memset(&outBuffer, 0, sizeof(outBuffer));
-  
-  // Copy EAM data to output buffer
-  memcpy(&outBuffer, &HoTTV4ElectricAirModule, kHoTTv4BinaryPacketSize);
-  
-  // Send data from output buffer
-  hottV4SendData(outBuffer, kHoTTv4BinaryPacketSize);
-}
+    // Clear output buffer
+    memset(&outBuffer, 0, sizeof(outBuffer));
+    
+    // Copy EAM data to output buffer
+    memcpy(&outBuffer, &HoTTV4ElectricAirModule, kHoTTv4BinaryPacketSize);
+    
+    // Send data from output buffer
+    hottV4SendData(outBuffer, kHoTTv4BinaryPacketSize);
+  }
+#endif
 
 /* ##################################################################### *
  *                HoTTv4 Text Mode                                       *
@@ -409,11 +412,13 @@ void hottV4SendTelemetry() {
             hottV4SendEAM();
             hottV4_state = IDLE;
             break;
-          case HOTTV4_GPS_SENSOR_ID:
-            //Serial.println(" --- GPS --- ");
-            hottV4SendGPS();
-            hottV4_state = IDLE;
-            break;
+          #ifdef MultiWii_GPS
+            case HOTTV4_GPS_SENSOR_ID:
+              //Serial.println(" --- GPS --- ");
+              hottV4SendGPS();
+              hottV4_state = IDLE;
+              break;
+          #endif
           default:
             hottV4_state = IDLE;
         }

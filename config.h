@@ -26,12 +26,19 @@
  * cell4 1000 Ohm and 15800 Ohm for 4S voltage measuring 
  * 326 == 3,26V
  */
-#define DEBUG_CELL
+//#define DEBUG_CELL
 #define cali_cell1  517 
 #define cali_cell2  484 
 #define cali_cell3  457 
 #define cali_cell4  452
 
+
+/**************************************************************************************/
+/***********************                  GPS                **************************/
+/**************************************************************************************/
+
+#define MultiWii_GPS
+ 
 
 /**************************************************************************************/
 /***********************          OLED - display settings         *********************/
@@ -40,7 +47,7 @@
 
 /*****************************   The type of LCD     **********************************/
 /* choice of LCD attached for configuration and telemetry, see notes below */
-#define OLED_I2C_128x64 // I2C LCD: OLED http://www.multiwii.com/forum/viewtopic.php?f=7&t=1350
+//#define OLED_I2C_128x64 // I2C LCD: OLED http://www.multiwii.com/forum/viewtopic.php?f=7&t=1350
 
 /******************************   Logo settings     ***********************************/
 //#define SUPPRESS_OLED_I2C_128x64LOGO  // suppress display of OLED logo to save memory

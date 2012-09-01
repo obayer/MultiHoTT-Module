@@ -8,7 +8,7 @@
  */
 
 #define REQUEST_DATA_DELAY 250 
-#define INPUT_BUFFER_SIZE 64
+#define INPUT_BUFFER_SIZE 128
 
 #define MSP_IDENT     100   //out message         multitype + multiwii 
 #define MSP_STATUS    101   //out message         cycletime & errors_count & sensor present & box activation 
@@ -22,7 +22,12 @@
 
 static uint8_t inBuffer[INPUT_BUFFER_SIZE];
 
-const static uint8_t schedule[] = { MSP_BAT, MSP_ALTITUDE, MSP_RAW_GPS, MSP_COMP_GPS, MSP_HEADING };
+const static uint8_t schedule[] = { MSP_BAT, MSP_ALTITUDE, 
+                                    #ifdef MultiWii_GPS
+                                      MSP_RAW_GPS, 
+                                      MSP_COMP_GPS, 
+                                    #endif
+                                    MSP_HEADING };
 
 /**
  * Main method of MultiWii integration.
@@ -126,12 +131,14 @@ static void mwEvaluateMSPResponse(uint8_t cmd, uint8_t *data) {
     case MSP_ALTITUDE:
       mwEvaluateMSP_ALTITUDE(data);
       break;
-    case MSP_RAW_GPS:
-      mwEvaluateMSP_RAW_GPS(data);
-      break;
-    case MSP_COMP_GPS:
-      mwEvaluateMSP_COMP_GPS(data);
-      break;
+    #ifdef MultiWii_GPS
+      case MSP_RAW_GPS:
+        mwEvaluateMSP_RAW_GPS(data);
+        break;
+      case MSP_COMP_GPS:
+        mwEvaluateMSP_COMP_GPS(data);
+        break;
+    #endif
     case MSP_HEADING:
       mwEvaluateMSP_HEADING(data);
       break;
@@ -169,37 +176,46 @@ static void mwEvaluateMSP_ATTITUDE(uint8_t *data) {
   MultiHoTTModule.attitudeHeading = data[4]+(data[5]*0x100);
 }
 
-/**
- * Reads RAW_GPS from MSP data frame and stores it for later usage.
- //out message         fix, numsat, lat, lon, alt, speed
- */
+#ifdef MultiWii_GPS
+  /**
+   * Reads RAW_GPS from MSP data frame and stores it for later usage.
+   //out message         fix, numsat, lat, lon, alt, speed
+   */
+//     headSerialReply(14);
+//     serialize8(f.GPS_FIX);
+//     serialize8(GPS_numSat);
+//     serialize32(GPS_coord[LAT]);
+//     serialize32(GPS_coord[LON]);
+//     serialize16(GPS_altitude);
+//     serialize16(GPS_speed); 
 static void mwEvaluateMSP_RAW_GPS(uint8_t *data) {
-  MultiHoTTModule.GPS_fix = data[0];
-  MultiHoTTModule.GPS_numSat = data[1];
-  MultiHoTTModule.GPS_latitude = data[2]+(data[3]*0x100)+(data[4]*0x10000)+(data[5]*0x1000000);
-  MultiHoTTModule.GPS_longitude = data[6]+(data[7]*0x100)+(data[8]*0x10000)+(data[9]*0x1000000);
-  MultiHoTTModule.GPS_altitude = data[10]+(data[11]*0x100);
-  MultiHoTTModule.GPS_speed = data[12]+(data[13]*0x100);
-  #ifdef DEBUG_MWii
-      LCD_set_line(4);
-      print_GPSLine1(MultiHoTTModule.GPS_numSat);
-      LCD_set_line(5);
-      print_GPSLine2(MultiHoTTModule.GPS_longitude,MultiHoTTModule.GPS_latitude);
-  #endif
-}
-
-/**
- * Reads COMP_GPS from MSP data frame and stores it for later usage.
- //out message         distance home, direction home
- */
-static void mwEvaluateMSP_COMP_GPS(uint8_t *data) {
-//     serialize16(GPS_distanceToHome);
-//     serialize16(GPS_directionToHome);
-//     serialize8(GPS_update & 1);   MultiHoTTModule.GPS_FIX = data[0];
-  MultiHoTTModule.GPS_distanceToHome = data[0]+(data[1]*0x100);
-  MultiHoTTModule.GPS_directionToHome = data[2]+(data[3]*0x100);
-  MultiHoTTModule.GPS_update = data[4];
-}
+    MultiHoTTModule.GPS_fix       = data[0];
+    MultiHoTTModule.GPS_numSat    = data[1];
+    MultiHoTTModule.GPS_latitude  = data[2]+(data[3]*0x100)+(data[4]*0x10000)+(data[5]*0x1000000);
+    MultiHoTTModule.GPS_longitude = data[6]+(data[7]*0x100)+(data[8]*0x10000)+(data[9]*0x1000000);
+    MultiHoTTModule.GPS_altitude  = data[10]+(data[11]*0x100);
+    MultiHoTTModule.GPS_speed     = data[12]+(data[13]*0x100);
+    #ifdef DEBUG_MWii
+        LCD_set_line(4);
+        print_GPSLine1(MultiHoTTModule.GPS_numSat);
+        LCD_set_line(5);
+        print_GPSLine2(MultiHoTTModule.GPS_longitude,MultiHoTTModule.GPS_latitude);
+    #endif
+  }
+  
+  /**
+   * Reads COMP_GPS from MSP data frame and stores it for later usage.
+   //out message         distance home, direction home
+   */
+  static void mwEvaluateMSP_COMP_GPS(uint8_t *data) {
+  //     serialize16(GPS_distanceToHome);
+  //     serialize16(GPS_directionToHome);
+  //     serialize8(GPS_update & 1);   
+    MultiHoTTModule.GPS_distanceToHome  = data[0]+(data[1]*0x100);
+    MultiHoTTModule.GPS_directionToHome = data[2]+(data[3]*0x100);
+    MultiHoTTModule.GPS_update          = data[4];
+  }
+#endif
 
 /**
  * Reads HEADING from MSP data frame and stores it for later usage.
@@ -209,11 +225,10 @@ static void mwEvaluateMSP_HEADING(uint8_t *data) {
 //     serialize16(heading);
 //     serialize16(magHold);
 //     serialize16(headFreeModeHold);
-  MultiHoTTModule.mode = data[1];
-  MultiHoTTModule.heading = data[1]+(data[2]*0x100);
-  MultiHoTTModule.magHold = data[3]+(data[4]*0x100);
+  MultiHoTTModule.magMode          = data[0];
+  MultiHoTTModule.heading          = data[1]+(data[2]*0x100);
+  MultiHoTTModule.magHold          = data[3]+(data[4]*0x100);
   MultiHoTTModule.headFreeModeHold = data[5]+(data[6]*0x100);
-
 }
 
 

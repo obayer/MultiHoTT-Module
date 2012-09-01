@@ -33,7 +33,7 @@ struct {
   uint8_t GPS_update;    
 
   //MSP_HEADING
-  uint8_t mode;
+  uint8_t magMode;
   uint16_t heading;
   uint16_t magHold;
   uint16_t headFreeModeHold;
