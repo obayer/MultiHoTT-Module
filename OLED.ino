@@ -415,6 +415,14 @@ void print_GPSLine2(uint32_t lon,uint32_t lat) {
   LCD_Print(line2); 
 }
 
+void print_GPSLine3(uint8_t DirectionToHome) {
+  char line[9] = "Home    ";
+  line[5] = digit100(DirectionToHome);
+  line[6] = digit10(DirectionToHome);
+  line[7] = digit1(DirectionToHome);
+  LCD_Print(line);
+}
+
 void LCD_Print(const char *string) {
   #if defined(OLED_I2C_128x64)
     i2c_OLED_Print(string);

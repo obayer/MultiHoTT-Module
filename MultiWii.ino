@@ -21,6 +21,21 @@
 #define MSP_HEADING   125   //out message         headings and MAG configuration 
 
 static uint8_t inBuffer[INPUT_BUFFER_SIZE];
+static uint8_t indRX;
+
+uint32_t read32() {
+  uint32_t t = read16();
+  t+= (uint32_t)read16()<<16;
+  return t;
+}
+uint16_t read16() {
+  uint16_t t = read8();
+  t+= (uint16_t)read8()<<8;
+  return t;
+}
+uint8_t read8()  {
+  return inBuffer[indRX++]&0xff;
+}
 
 const static uint8_t schedule[] = { MSP_BAT, MSP_ALTITUDE, 
                                     #ifdef MultiWii_GPS
@@ -92,6 +107,7 @@ void mwEvaluateResponse() {
     } else if (HEADER_ARROW == c_state) {
       checksum = 0;
       offset = 0;
+      indRX = 0;
       memset(inBuffer, 0, sizeof(inBuffer));
       
       payloadSize = c;
@@ -123,24 +139,24 @@ void mwEvaluateResponse() {
 static void mwEvaluateMSPResponse(uint8_t cmd, uint8_t *data) {
   switch(cmd) {
     case MSP_BAT:
-      mwEvaluateMSP_BAT(data);
+      mwEvaluateMSP_BAT();
       break;
     case MSP_ATTITUDE:
-      mwEvaluateMSP_ATTITUDE(data);
+      mwEvaluateMSP_ATTITUDE();
       break;
     case MSP_ALTITUDE:
-      mwEvaluateMSP_ALTITUDE(data);
+      mwEvaluateMSP_ALTITUDE();
       break;
     #ifdef MultiWii_GPS
       case MSP_RAW_GPS:
-        mwEvaluateMSP_RAW_GPS(data);
+        //mwEvaluateMSP_RAW_GPS();
         break;
       case MSP_COMP_GPS:
-        mwEvaluateMSP_COMP_GPS(data);
+        mwEvaluateMSP_COMP_GPS();
         break;
     #endif
     case MSP_HEADING:
-      mwEvaluateMSP_HEADING(data);
+      mwEvaluateMSP_HEADING();
       break;
   }
 }
@@ -148,9 +164,9 @@ static void mwEvaluateMSPResponse(uint8_t cmd, uint8_t *data) {
 /**
  * Reads VBAT from given MSP data frame and stores it for later usage.
  */
-static void mwEvaluateMSP_BAT(uint8_t *data) {
-  MultiHoTTModule.vbat2 = data[0];
-  MultiHoTTModule.intPowerMeterSum = data[1]+(data[2]*0x100);
+static void mwEvaluateMSP_BAT() {
+  MultiHoTTModule.vbat2 = read8();  //data[0];
+  MultiHoTTModule.intPowerMeterSum = read16();  //data[1]+(data[2]*0x100);
   #ifdef DEBUG_MWii
       LCD_set_line(3);
       LCD_Print("EAM ");
@@ -163,17 +179,17 @@ static void mwEvaluateMSP_BAT(uint8_t *data) {
 /**
  * Reads altitude from MSP data frame and stores it for later usage.
  */
-static void mwEvaluateMSP_ALTITUDE(uint8_t *data) {
-  MultiHoTTModule.altitude = data[0]+(data[1]*0x100)+(data[2]*0x10000)+(data[4]*0x1000000);
+static void mwEvaluateMSP_ALTITUDE() {
+  MultiHoTTModule.altitude = read32();  //data[0]+(data[1]*0x100)+(data[2]*0x10000)+(data[4]*0x1000000);
 }
 
 /**
  * Reads attitude from MSP data frame and stores it for later usage.
  */
-static void mwEvaluateMSP_ATTITUDE(uint8_t *data) {
-  MultiHoTTModule.attitudeAngles1 = data[0]+(data[1]*0x100);
-  MultiHoTTModule.attitudeAngles2 = data[2]+(data[3]*0x100);
-  MultiHoTTModule.attitudeHeading = data[4]+(data[5]*0x100);
+static void mwEvaluateMSP_ATTITUDE() {
+  MultiHoTTModule.attitudeAngles1 = read16();  //data[0]+(data[1]*0x100);
+  MultiHoTTModule.attitudeAngles2 = read16();  //data[2]+(data[3]*0x100);
+  MultiHoTTModule.attitudeHeading = read16();  //data[4]+(data[5]*0x100);
 }
 
 #ifdef MultiWii_GPS
@@ -188,13 +204,13 @@ static void mwEvaluateMSP_ATTITUDE(uint8_t *data) {
 //     serialize32(GPS_coord[LON]);
 //     serialize16(GPS_altitude);
 //     serialize16(GPS_speed); 
-static void mwEvaluateMSP_RAW_GPS(uint8_t *data) {
-    MultiHoTTModule.GPS_fix       = data[0];
-    MultiHoTTModule.GPS_numSat    = data[1];
-    MultiHoTTModule.GPS_latitude  = data[2]+(data[3]*0x100)+(data[4]*0x10000)+(data[5]*0x1000000);
-    MultiHoTTModule.GPS_longitude = data[6]+(data[7]*0x100)+(data[8]*0x10000)+(data[9]*0x1000000);
-    MultiHoTTModule.GPS_altitude  = data[10]+(data[11]*0x100);
-    MultiHoTTModule.GPS_speed     = data[12]+(data[13]*0x100);
+static void mwEvaluateMSP_RAW_GPS() {
+    MultiHoTTModule.GPS_fix       = read8();   //data[0];
+    MultiHoTTModule.GPS_numSat    = read8();   //data[1];
+    MultiHoTTModule.GPS_latitude  = read32();  //data[2]+(data[3]*0x100)+(data[4]*0x10000)+(data[5]*0x1000000);
+    MultiHoTTModule.GPS_longitude = read32();  //data[6]+(data[7]*0x100)+(data[8]*0x10000)+(data[9]*0x1000000);
+    MultiHoTTModule.GPS_altitude  = read16();  //data[10]+(data[11]*0x100);
+    MultiHoTTModule.GPS_speed     = read16();  //data[12]+(data[13]*0x100);
     #ifdef DEBUG_MWii
         LCD_set_line(4);
         print_GPSLine1(MultiHoTTModule.GPS_numSat);
@@ -207,28 +223,32 @@ static void mwEvaluateMSP_RAW_GPS(uint8_t *data) {
    * Reads COMP_GPS from MSP data frame and stores it for later usage.
    //out message         distance home, direction home
    */
-  static void mwEvaluateMSP_COMP_GPS(uint8_t *data) {
+  static void mwEvaluateMSP_COMP_GPS() {
   //     serialize16(GPS_distanceToHome);
   //     serialize16(GPS_directionToHome);
   //     serialize8(GPS_update & 1);   
-    MultiHoTTModule.GPS_distanceToHome  = data[0]+(data[1]*0x100);
-    MultiHoTTModule.GPS_directionToHome = data[2]+(data[3]*0x100);
-    MultiHoTTModule.GPS_update          = data[4];
+    MultiHoTTModule.GPS_distanceToHome  = read16();  //data[0]+(data[1]*0x100);
+    MultiHoTTModule.GPS_directionToHome = read16();  //data[2]+(data[3]*0x100);
+    MultiHoTTModule.GPS_update          = read8();   //data[4];
+    #ifdef DEBUG_MWii
+        LCD_set_line(6);
+        print_GPSLine3(MultiHoTTModule.GPS_directionToHome);
+    #endif
   }
 #endif
 
 /**
  * Reads HEADING from MSP data frame and stores it for later usage.
  */
-static void mwEvaluateMSP_HEADING(uint8_t *data) {
+static void mwEvaluateMSP_HEADING() {
 //     serialize8( f.MAG_MODE<<0 | f.HEADFREE_MODE<<1 );
 //     serialize16(heading);
 //     serialize16(magHold);
 //     serialize16(headFreeModeHold);
-  MultiHoTTModule.magMode          = data[0];
-  MultiHoTTModule.heading          = data[1]+(data[2]*0x100);
-  MultiHoTTModule.magHold          = data[3]+(data[4]*0x100);
-  MultiHoTTModule.headFreeModeHold = data[5]+(data[6]*0x100);
+  MultiHoTTModule.magMode          = read8();   //data[0];
+  MultiHoTTModule.heading          = read16();  //data[1]+(data[2]*0x100);
+  MultiHoTTModule.magHold          = read16();  //data[3]+(data[4]*0x100);
+  MultiHoTTModule.headFreeModeHold = read16();  //data[5]+(data[6]*0x100);
 }
 
 
