@@ -2,7 +2,7 @@
 
 #define VBAT A3
 //#define TEMP1 A4
-#define CURRENT A2
+//#define CURRENT A2
 
 /** To avoid sensor jitter as found in: 
  * http://forums.adafruit.com/viewtopic.php?f=25&t=11597
@@ -21,7 +21,7 @@ void sensorsReadVBAT() {
 
   // 51kOhm and 33kOhm for 3S voltage measuring
   // 126 == 12,6V
-  MultiHoTTModule.vbat = (127l * analogRead(VBAT)) >> 10;
+  MultiHoTTModule.driveVoltage = (127l * analogRead(VBAT)) >> 10;
 }
 
 /**
@@ -30,9 +30,6 @@ void sensorsReadVBAT() {
 void sensorsReadTemperatures() {
   #ifdef TEMP1
     sensorsAvoidJitter(TEMP1);
-    
-    analogRead(TEMP1);
-    delay(25);
     
     // Usage of temperature sensor LM35
     // 5000mv / 1024steps = 4,88mv/step --> 0,488C/step

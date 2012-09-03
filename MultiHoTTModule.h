@@ -2,8 +2,10 @@
 #define MultiHoTTModule_h
 
 struct {
-  uint8_t vbat;
+  // 10mV steps
+  uint16_t driveVoltage;
 
+  // 2mV steps
   uint8_t cell1;
   uint8_t cell2;
   uint8_t cell3;
@@ -15,7 +17,8 @@ struct {
 } MultiHoTTModule;
 
 struct {
-  uint8_t alarmVBat;
+  uint8_t version;
+  uint8_t alarmDriveVoltage;
   uint8_t alarmTemp1;
 } MultiHoTTModuleSettings;
 

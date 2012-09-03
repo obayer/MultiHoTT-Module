@@ -68,15 +68,15 @@ static void hottV4EAMUpdateBattery() {
   HoTTV4ElectricAirModule.cell3L = MultiHoTTModule.cell3;
   HoTTV4ElectricAirModule.cell3H = MultiHoTTModule.cell3;
   
-  if (MultiHoTTModule.vbat > 0) {
-    HoTTV4ElectricAirModule.driveVoltage = MultiHoTTModule.vbat;
+  if (MultiHoTTModule.driveVoltage > 0) {
+    HoTTV4ElectricAirModule.driveVoltage = MultiHoTTModule.driveVoltage;
   } else {
     // Divide by 5 to convert to HoTT interval
     uint16_t vbat = (MultiHoTTModule.cell1 + MultiHoTTModule.cell2 + MultiHoTTModule.cell3) / 5;
     HoTTV4ElectricAirModule.driveVoltage = vbat; 
   }
 
-  if ( MultiHoTTModule.vbat <= MultiHoTTModuleSettings.alarmVBat) {
+  if (MultiHoTTModule.driveVoltage <= MultiHoTTModuleSettings.alarmDriveVoltage) {
     HoTTV4ElectricAirModule.alarmTone = HoTTv4NotificationUndervoltage;  
     HoTTV4ElectricAirModule.alarmInverse |= 0x80; // Invert Voltage display
   } 
@@ -226,10 +226,10 @@ static void hottV4SendEAMText(uint8_t row, uint8_t col) {
   memset(&outBuffer, 0x0, sizeof(outBuffer));
   
   hottV4ClearAllTextLines();
-  hottV4WriteLine(0, " MultiHoTT Settings");
+  hottV4WriteLine(0, " MULTIHoTT SETTINGS");
 
   char text[21];
-  snprintf(text, 21, "ALARM VOLT : %2i.%1iV", MultiHoTTModuleSettings.alarmVBat / 10, MultiHoTTModuleSettings.alarmVBat % 10);
+  snprintf(text, 21, "ALARM VOLT : %2i.%1iV", MultiHoTTModuleSettings.alarmDriveVoltage / 10, MultiHoTTModuleSettings.alarmDriveVoltage % 10);
   hottV4WriteLine(2, text, row, col);
   
   snprintf(text, 21, "ALARM TEMP1:  %3iC", MultiHoTTModuleSettings.alarmTemp1);
@@ -319,7 +319,7 @@ void hottV4SendTelemetry() {
           case HOTTV4_BUTTON_DEC:
             if (col) {
               if (row == 2) {
-                MultiHoTTModuleSettings.alarmVBat -= 1;
+                MultiHoTTModuleSettings.alarmDriveVoltage -= 1;
               } else if (row == 3) {
                 MultiHoTTModuleSettings.alarmTemp1 -= 1;
               }
@@ -330,7 +330,7 @@ void hottV4SendTelemetry() {
           case HOTTV4_BUTTON_INC:
             if (col) {
               if (row == 2) {
-                MultiHoTTModuleSettings.alarmVBat += 1;
+                MultiHoTTModuleSettings.alarmDriveVoltage += 1;
               } else if (row == 3) {
                 MultiHoTTModuleSettings.alarmTemp1 += 1;
               }
@@ -340,6 +340,7 @@ void hottV4SendTelemetry() {
             break;
           case HOTTV4_BUTTON_SET:
             col = col == 1 ? 0 : 1;
+            writeSettings();
             break;
         }
         

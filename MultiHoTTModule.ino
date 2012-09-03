@@ -18,8 +18,9 @@ void setup() {
   Serial.begin(115200);
   
   hottV4Setup();
-
-  MultiHoTTModuleSettings.alarmVBat = 104;
+  
+  readSettings();
+  checkSettings();
 }
 
 static void blink() {

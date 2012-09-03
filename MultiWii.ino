@@ -124,7 +124,7 @@ static void mwEvaluateMSPResponse(uint8_t cmd, uint8_t *data) {
  * Reads VBAT from given MSP data frame and stores it for later usage.
  */
 static void mwEvaluateMSP_BAT(uint8_t *data) {
-  MultiHoTTModule.vbat = data[0];
+  MultiHoTTModule.driveVoltage = data[0];
 }
 
 /**
