@@ -107,7 +107,7 @@ static void hottV4EAMUpdateTemperatures() {
   static void hottV4GPSUpdate() {
     //number of Satelites
     HoTTV4GPSModule.GPSNumSat=MultiHoTTModule.GPS_numSat;
-    if (MultiHoTTModule.GPS_fix) { 
+    if (MultiHoTTModule.GPS_fix > 0) { 
       /** GPS fix */
       HoTTV4GPSModule.GPS_fix = 0x66; // Displays a 'f' for fix
       //latitude
@@ -224,7 +224,7 @@ static void hottV4SendEAM() {
    
     #ifdef DEBUG_HOTT
         LCD_set_line(4);
-        print_GPSLine1(MultiHoTTModule.GPS_numSat);
+        print_GPSLine1(MultiHoTTModule.GPS_numSat,MultiHoTTModule.GPS_fix);
         LCD_set_line(5);
         print_GPSLine2(MultiHoTTModule.GPS_longitude,MultiHoTTModule.GPS_latitude);
     #endif
@@ -233,7 +233,7 @@ static void hottV4SendEAM() {
     memset(&outBuffer, 0, sizeof(outBuffer));
     
     // Copy EAM data to output buffer
-    memcpy(&outBuffer, &HoTTV4ElectricAirModule, kHoTTv4BinaryPacketSize);
+    memcpy(&outBuffer, &HoTTV4GPSModule, kHoTTv4BinaryPacketSize);
     
     // Send data from output buffer
     hottV4SendData(outBuffer, kHoTTv4BinaryPacketSize);

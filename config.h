@@ -5,8 +5,8 @@
  * by Oliver Bayer & Carsten Giesen, 07/2012
  */
 
-//#define DEBUG_HOTT
-#define DEBUG_MWii
+#define DEBUG_HOTT
+//#define DEBUG_MWii
 
 /**
  * MultiWii has VBat function
@@ -37,7 +37,7 @@
 /***********************                  GPS                **************************/
 /**************************************************************************************/
 
-//#define MultiWii_GPS
+#define MultiWii_GPS
  
 
 /**************************************************************************************/

@@ -105,6 +105,10 @@ void mwEvaluateResponse() {
     } else if (HEADER_M == c_state) {
       c_state = ('>' == c) ? HEADER_ARROW : IDLE;
     } else if (HEADER_ARROW == c_state) {
+      if (c > INPUT_BUFFER_SIZE) {  // now we are expecting the payload size
+        c_state = IDLE;
+        continue;
+      }
       checksum = 0;
       offset = 0;
       indRX = 0;
@@ -124,7 +128,7 @@ void mwEvaluateResponse() {
       inBuffer[offset++] = c; 
     } else if (HEADER_CMD == c_state && offset >= payloadSize) { 
       if (checksum == c) {
-        mwEvaluateMSPResponse(cmd, inBuffer);
+        mwEvaluateMSPResponse(cmd);
       }
 
       c_state = IDLE;
@@ -136,7 +140,7 @@ void mwEvaluateResponse() {
  * Evaluates valid MultiWii Serial Protocol message and 
  * stores needed data for later transmission via HoTT. 
  */
-static void mwEvaluateMSPResponse(uint8_t cmd, uint8_t *data) {
+static void mwEvaluateMSPResponse(uint8_t cmd) {
   switch(cmd) {
     case MSP_BAT:
       mwEvaluateMSP_BAT();
@@ -149,7 +153,7 @@ static void mwEvaluateMSPResponse(uint8_t cmd, uint8_t *data) {
       break;
     #ifdef MultiWii_GPS
       case MSP_RAW_GPS:
-        //mwEvaluateMSP_RAW_GPS();
+        mwEvaluateMSP_RAW_GPS();
         break;
       case MSP_COMP_GPS:
         mwEvaluateMSP_COMP_GPS();
@@ -213,7 +217,7 @@ static void mwEvaluateMSP_RAW_GPS() {
     MultiHoTTModule.GPS_speed     = read16();  //data[12]+(data[13]*0x100);
     #ifdef DEBUG_MWii
         LCD_set_line(4);
-        print_GPSLine1(MultiHoTTModule.GPS_numSat);
+        print_GPSLine1(MultiHoTTModule.GPS_numSat,MultiHoTTModule.GPS_fix);
         LCD_set_line(5);
         print_GPSLine2(MultiHoTTModule.GPS_longitude,MultiHoTTModule.GPS_latitude);
     #endif

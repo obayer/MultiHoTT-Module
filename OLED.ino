@@ -379,18 +379,20 @@ void print_VBAT(uint16_t volt) {
   LCD_Print(line);
 }
 
-void print_GPSLine1(uint8_t NumSat) {
-  char line[8] = "GPS #- ";
+void print_GPSLine1(uint8_t NumSat, uint8_t Fix) {
+  char line[15] = "GPS #- FIX ---";
   line[5] = digit1(NumSat);
+  line[11] = digit100(NumSat);
+  line[12] = digit10(NumSat);
+  line[13] = digit1(NumSat);
   LCD_Print(line);
 }
 
 void print_GPSLine2(uint32_t lon,uint32_t lat) {
-  char line2[22];
   int32_t aGPS_latitude = abs(lat);
   int32_t aGPS_longitude = abs(lon);
   int pos=3;
-  strcpy_P(line2,PSTR("LA ------- LO ------- "));
+  char line2[23] = "LA ------- LO -------";
    
   line2[pos++] = '0' + aGPS_latitude / 1000000 - (aGPS_latitude/10000000) * 10;
   line2[pos++] = '0' + aGPS_latitude / 100000  - (aGPS_latitude/1000000)  * 10;
@@ -400,10 +402,7 @@ void print_GPSLine2(uint32_t lon,uint32_t lat) {
   line2[pos++] = '0' + aGPS_latitude / 10   -    (aGPS_latitude/100)   * 10;
   line2[pos++] = '0' + aGPS_latitude        -    (aGPS_latitude/10)    * 10;       
    
-  pos++;
-  pos++;
-  pos++;
-  pos++;
+  pos=14;
   line2[pos++] = '0' + aGPS_longitude / 1000000 - (aGPS_longitude/10000000) * 10;
   line2[pos++] = '0' + aGPS_longitude / 100000  - (aGPS_longitude/1000000)  * 10;
   line2[pos++] = '0' + aGPS_longitude / 10000   - (aGPS_longitude/100000)   * 10;
