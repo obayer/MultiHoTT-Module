@@ -5,15 +5,16 @@ struct {
   // 10mV steps
   uint16_t driveVoltage;
 
+  uint16_t current;
+  
   // 2mV steps
   uint8_t cell1;
   uint8_t cell2;
   uint8_t cell3;
   
   uint8_t temp;
-  
-  uint32_t height;
-  uint16_t current;
+ 
+  int32_t altitude;
 } MultiHoTTModule;
 
 struct {

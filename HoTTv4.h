@@ -3,10 +3,11 @@
 
 /** ###### HoTT module specifications ###### */
 
-#define HOTTV4_GENERAL_AIR_SENSOR_ID 0xD0
-
 #define HOTTV4_ELECTRICAL_AIR_SENSOR_ID 0x8E // Electric Air Sensor ID
 #define HOTTV4_ELECTRICAL_AIR_SENSOR_TEXT_ID 0xE0 // Electric Air Module ID
+
+#define HOTTV4_VARIO_SENSOR_ID 0x89 // Vario Sensor ID
+#define HOTTV4_VARIO_SENSOR_TEXT_ID 0x90 // Vario Module ID
 
 const uint8_t kHoTTv4BinaryPacketSize = 45; 
 const uint8_t kHoTTv4TextPacketSize = 173;
@@ -83,7 +84,7 @@ struct {
   uint8_t temp1; /* Temp 1; Offset of 20. 20 == 0C */
   uint8_t temp2; /* Temp 2; Offset of 20. 20 == 0C */
 
-  uint16_t height; /* Height. Offset -500. 500 == 0 */
+  uint16_t altitude; /* Offset -500. 500 == 0 */
   uint16_t current; /* 1 = 0.1A */
   uint16_t driveVoltage;
   uint16_t capacity; /* mAh */
@@ -99,6 +100,29 @@ struct {
   uint8_t endByte;
   uint8_t chksum;
 } HoTTV4ElectricAirModule;
+
+struct {
+  uint8_t startByte;
+  uint8_t sensorID;
+  uint8_t alarmTone; /* Alarm */
+  uint8_t sensorTextID;
+  uint8_t alarmInverse;
+
+  uint16_t altitude;
+  uint16_t maxAltitude;
+  uint16_t minAltitude;
+
+  uint16_t m1sResolution;
+  uint16_t m3sResolution;
+  uint16_t m10sResolution;
+
+  uint8_t text[24];
+  uint8_t empty;
+
+  uint8_t version;
+  uint8_t endByte;
+  uint8_t chksum;
+} HoTTV4VarioModule;
 
 struct {
   uint8_t startByte;

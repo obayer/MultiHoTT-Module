@@ -8,7 +8,7 @@
  * by Oliver Bayer, 07/2012
  */
 
-#define DEBUG
+//#define DEBUG
 #define LED 13
 
 void setup() {
@@ -17,7 +17,8 @@ void setup() {
   // Used for debuging and to communicate with MultiWii
   Serial.begin(115200);
   
-  hottV4Setup();
+  setupHoTTV4();
+  setupAltitude();
   
   readSettings();
   checkSettings();
@@ -51,19 +52,13 @@ void loop() {
     switch (state) {
       case 0:
         /** Read VBAT */
-        sensorsReadVBAT();
-        state++;
-        break;
-
-      case 1:
-        /** Read temperatures */
-        sensorsReadTemperatures();
+        readVBAT();
         state++;
         break;
       
-      case 2:
-        /** Read current */
-        sensorsReadCurrent();
+      case 1:
+        /** Read current Altitude */
+        readAltitude();
         state++;
         break;
 

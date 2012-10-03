@@ -11,7 +11,7 @@
 #define HOTTV4_BUTTON_NEXT 0xEE
 #define HOTTV4_BUTTON_PREV 0xE7
 
-#define OFFSET_HEIGHT 500
+#define OFFSET_ALTITUDE 500
 #define OFFSET_M2S 72
 #define OFFSET_M3S 120
 
@@ -20,14 +20,16 @@ static uint8_t outBuffer[173];
 static uint8_t row = 2;
 static uint8_t col = 0;
 
-static uint8_t vbat = 100;
-
 SoftwareSerial hottV4Serial(HOTTV4_RXTX , HOTTV4_RXTX);
+
+/* ##################################################################### *
+ *                HoTTv4 Common communication                            *
+ * ##################################################################### */
 
 /** 
  * Common setup method for HoTTv4
  */
-void hottV4Setup() {
+void setupHoTTV4() {
   hottV4Serial.begin(19200);
 
   hottV4EnableReceiverMode();
@@ -37,15 +39,15 @@ void hottV4Setup() {
  * Enables RX and disables TX
  */
 static inline void hottV4EnableReceiverMode() {
-  DDRD &= ~(1 << 3);
-  PORTD |= (1 << 3);
+  DDRD &= ~(1 << HOTTV4_RXTX);
+  PORTD |= (1 << HOTTV4_RXTX);
 }
 
 /**
  * Enabels TX and disables RX
  */
 static inline void hottV4EnableTransmitterMode() {
-  DDRD |= (1 << 3);
+  DDRD |= (1 << HOTTV4_RXTX);
 }
 
 /**
@@ -55,6 +57,10 @@ static inline void hottV4EnableTransmitterMode() {
 static void hottV4SerialWrite(uint8_t c) {
   hottV4Serial.write(c);
 }
+
+/* ##################################################################### *
+ *                HoTTv4 Electrical Air Module                           *
+ * ##################################################################### */
 
 /**
  * Writes cell 1-3 high, low values and if not available 
@@ -82,16 +88,6 @@ static void hottV4EAMUpdateBattery() {
   } 
 }
 
-static void hottV4EAMUpdateTemperatures() {
-  HoTTV4ElectricAirModule.temp1 = 20 + MultiHoTTModule.temp;
-  HoTTV4ElectricAirModule.temp2 = 20;
-
-  //if (HoTTV4ElectricAirModule.temp1 >= (20 + MultiHoTTModuleSettings.alarmTemp1)) {
-  //  HoTTV4ElectricAirModule.alarmTone = HoTTv4NotificationMaxTemperature;  
-  //  HoTTV4ElectricAirModule.alarmInverse |= 0x8; // Invert Temp1 display
-  //}
-}
-
 /**
  * Sends HoTTv4 capable EAM telemetry frame.
  */
@@ -108,23 +104,13 @@ static void hottV4SendEAM() {
   HoTTV4ElectricAirModule.alarmInverse = 0x0;
   
   hottV4EAMUpdateBattery();
-  hottV4EAMUpdateTemperatures();
-
-  HoTTV4ElectricAirModule.current = MultiHoTTModule.current / 10; 
-  HoTTV4ElectricAirModule.height = OFFSET_HEIGHT + MultiHoTTModule.height;
+  
+  HoTTV4ElectricAirModule.temp1 = 20;
+  HoTTV4ElectricAirModule.temp2 = 20;
+  HoTTV4ElectricAirModule.current = 0; 
+  HoTTV4ElectricAirModule.altitude = OFFSET_ALTITUDE + MultiHoTTModule.altitude;
   HoTTV4ElectricAirModule.m2s = OFFSET_M2S; 
   HoTTV4ElectricAirModule.m3s = OFFSET_M3S;
-  
-  #ifdef DEBUG
-    Serial.println(" --- EAM --- ");
-    
-    Serial.print("   VBat: ");
-    Serial.println(HoTTV4ElectricAirModule.driveVoltage, DEC);
-    
-    Serial.print("Current: ");
-    Serial.println(HoTTV4ElectricAirModule.current, DEC);
-    Serial.println("");
-  #endif
 
   // Clear output buffer
   memset(&outBuffer, 0, sizeof(outBuffer));
@@ -134,6 +120,57 @@ static void hottV4SendEAM() {
   
   // Send data from output buffer
   hottV4SendData(outBuffer, kHoTTv4BinaryPacketSize);
+}
+
+/* ##################################################################### *
+ *                HoTTv4 VARIO Module                                    *
+ * ##################################################################### */
+
+/**
+ * Sends HoTTv4 capable VARIO telemetry frame.
+ */
+static void hottV4SendVARIO() {
+  static uint32_t previousMillis = millis();
+
+  static int16_t maxAltitude = OFFSET_ALTITUDE;
+  static int16_t minAltitude = OFFSET_ALTITUDE;
+  
+  static int32_t previousRawAltitude = 0;
+  static int32_t referenceRawAltitude = 0;
+
+  if ((0 == referenceRawAltitude) && (0 != MultiHoTTModule.altitude)) {
+    referenceRawAltitude = MultiHoTTModule.altitude;
+  } else {
+    /** Minimum data set for EAM */
+    HoTTV4VarioModule.startByte = 0x7C;
+    HoTTV4VarioModule.sensorID = HOTTV4_VARIO_SENSOR_ID;
+    HoTTV4VarioModule.sensorTextID = HOTTV4_VARIO_SENSOR_TEXT_ID;
+    HoTTV4VarioModule.endByte = 0x7D;
+    /** ### */
+    
+    HoTTV4VarioModule.altitude = OFFSET_ALTITUDE + (int)((MultiHoTTModule.altitude - referenceRawAltitude) / 100);
+    
+    maxAltitude = max(maxAltitude, HoTTV4VarioModule.altitude);
+    HoTTV4VarioModule.maxAltitude = maxAltitude;
+  
+    minAltitude = min(minAltitude, HoTTV4VarioModule.altitude);
+    HoTTV4VarioModule.minAltitude = minAltitude;
+  
+    HoTTV4VarioModule.m1sResolution = 117 + (MultiHoTTModule.altitude - previousRawAltitude);
+    HoTTV4VarioModule.m3sResolution = 117;
+    HoTTV4VarioModule.m10sResolution = 117;
+  
+    previousRawAltitude = MultiHoTTModule.altitude;
+  
+    // Clear output buffer
+    memset(&outBuffer, 0, sizeof(outBuffer));
+    
+    // Copy EAM data to output buffer
+    memcpy(&outBuffer, &HoTTV4VarioModule, kHoTTv4BinaryPacketSize);
+    
+    // Send data from output buffer
+    hottV4SendData(outBuffer, kHoTTv4BinaryPacketSize);
+  }
 }
 
 /* ##################################################################### *
@@ -243,7 +280,7 @@ static void hottV4SendEAMText(uint8_t row, uint8_t col) {
 }
 
 /**
- * Expects an array of at least size bytes. All bytes till size will be transmitted
+ * Expects an array of at least |size| bytes. All bytes till |size| will be transmitted
  * to the HoTT capable receiver. Last byte will always be treated as checksum and is
  * calculated on the fly.
  */
@@ -304,6 +341,11 @@ void hottV4SendTelemetry() {
         switch (c) {
           case HOTTV4_ELECTRICAL_AIR_SENSOR_ID:
             hottV4SendEAM();
+            hottV4_state = IDLE;
+            break;
+          
+          case HOTTV4_VARIO_SENSOR_ID:
+            hottV4SendVARIO();
             hottV4_state = IDLE;
             break;
 
