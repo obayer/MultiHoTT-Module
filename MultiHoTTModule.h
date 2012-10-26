@@ -19,8 +19,10 @@ struct {
 
 struct {
   uint8_t version;
-  uint8_t alarmDriveVoltage;
-  uint8_t alarmTemp1;
+  uint8_t minDriveVoltage;
+  uint8_t maxTemp1;
+  int16_t maxAltitude;
+  uint8_t varioBeep;
 } MultiHoTTModuleSettings;
 
 #endif

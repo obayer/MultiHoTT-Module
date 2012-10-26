@@ -112,9 +112,9 @@ struct {
   uint16_t maxAltitude;
   uint16_t minAltitude;
 
-  uint16_t m1sResolution;
-  uint16_t m3sResolution;
-  uint16_t m10sResolution;
+  uint16_t m1s;
+  uint16_t m3s;
+  uint16_t m10s;
 
   uint8_t text[24];
   uint8_t empty;
@@ -131,6 +131,6 @@ struct {
   uint8_t text[8*21];
   uint8_t endByte;
   uint8_t chksum;
-} HoTTv4ElectricalAirTextModule;
+} HoTTv4TextModule;
 
 #endif

@@ -9,12 +9,12 @@
 #define BMP085_ADDRESS 0x77  // I2C address of BMP085
 
 // Number of samples for moving average filter
-#define SAMPLES 5
+#define SAMPLES 10
 
 // Low Pass filter constant
-#define LOW_PASS_FACTOR 0.25
+#define LOW_PASS_FACTOR 0.2
 
-const unsigned char OSS = 2;  // Oversampling Setting
+const unsigned char OSS = 1;  // Oversampling Setting
 
 static float values[SAMPLES];
 
@@ -42,7 +42,7 @@ void setupAltitude(){
   Wire.begin();
   bmp085Calibration();
 
-  memset(&values, 0, sizeof(values));  
+  memset(&values, 0, sizeof(values));
 }
 
 static float filter(float altitude) {
@@ -72,11 +72,22 @@ static float filter(float altitude) {
 }
 
 void readAltitude() {
+  static uint8_t cnt = 0;
+
   float temperature = bmp085GetTemperature(bmp085ReadUT()); //MUST be called first
   float pressure = bmp085GetPressure(bmp085ReadUP());
   float atm = pressure / 101325; // "standard atmosphere"
   float altitude = calcAltitude(pressure); //Uncompensated caculation - in Meters
 
+#if defined DEBUG
+  Serial.print("Pressure: ");
+  Serial.println(pressure);
+  Serial.print("Altitude: ");
+  Serial.println(altitude);
+#endif
+
+  float filteredAlt = filter(altitude);
+  // Altitude in cm
   MultiHoTTModule.altitude = 100 * filter(altitude);
 }
 

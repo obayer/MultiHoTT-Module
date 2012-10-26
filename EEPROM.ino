@@ -16,8 +16,9 @@ void checkSettings() {
     return;
   } else {
     MultiHoTTModuleSettings.version = EEPROM_SETTINGS_VERSION;
-    MultiHoTTModuleSettings.alarmDriveVoltage = 104;
-    MultiHoTTModuleSettings.alarmTemp1 = 50;
+    MultiHoTTModuleSettings.minDriveVoltage = 104;
+    MultiHoTTModuleSettings.maxTemp1 = 50;
+    MultiHoTTModuleSettings.maxAltitude = 300;
 
     writeSettings();
   }
