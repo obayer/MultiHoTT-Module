@@ -5,6 +5,8 @@ struct {
   uint16_t vbat1;  //VBat MultiWiiModule
   uint8_t vbat2;  //VBat MultiWii FlightControll
   uint16_t intPowerMeterSum; 
+  uint16_t rssi;
+  uint16_t amperage;
   
   uint16_t cell1;
   uint16_t cell2;
