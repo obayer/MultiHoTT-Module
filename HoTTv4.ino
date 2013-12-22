@@ -1,5 +1,6 @@
 #include "HoTTv4.h"
 #include "MultiHoTTModule.h"
+#include "config.h"
 
 #define HOTTV4_RXTX 4
 #define HOTTV4_TX_DELAY 1000
